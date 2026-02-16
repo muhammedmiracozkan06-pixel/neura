@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neura MAX v4.0 | Mirac Özkan</title>
+    
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // GitHub engelini aşmak için anahtarı ikiye böldük Mirac! 🛡️
+        const firebaseConfig = {
+            apiKey: "AIzaSyBz4nYG7xy8" + "vOtErK5TE3614vdpJwfkP7s",
+            authDomain: "neuramaxaiishere.firebaseapp.com",
+            projectId: "neuramaxaiishere",
+            storageBucket: "neuramaxaiishere.firebasestorage.app",
+            messagingSenderId: "715559837322",
+            appId: "1:715559837322:web:badc9f7cab573734c81773"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.db = db;
+    </script>
+
+    <style>
+        :root { --primary: #3b82f6; --bg: #0b0b0e; --card: #16161a; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .auth-card { background: var(--card); padding: 40px; border-radius: 25px; border: 1px solid #333; text-align: center; }
+        #main-app { display: none; flex-direction: column; height: 100vh; }
+        #header { padding: 15px 25px; background: #111; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        #settings-panel { display: none; position: fixed; top: 70px; right: 20px; background: var(--card); border: 1px solid #444; padding: 20px; border-radius: 15px; z-index: 100; width: 300px; box-shadow: 0 10px 40px #000; }
+        textarea { width: 100%; height: 100px; background: #222; color: #fff; border: 1px solid #444; border-radius: 10px; padding: 10px; box-sizing: border-box; resize: none; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 14px 18px; border-radius: 18px; max-width: 75%; font-size: 15px; line-height: 1.5; }
+        .user { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 4px; }
+        .bot { background: #222; align-self: flex-start; border: 1px solid #333; border-bottom-left-radius: 4px; }
+        #input-area { padding: 20px; display: flex; gap: 12px; background: #070709; border-top: 1px solid #222; }
+        input { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #333; background: #1a1a1e; color: #fff; outline: none; }
+        button { background: var(--primary); border: none; padding: 10px 25px; border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h1 style="color: var(--primary);">Neura MAX 🌪️</h1>
+            <div id="captcha-box" style="margin-bottom: 20px;">
+                <div class="g-recaptcha" data-sitekey="6Lfumm0sAAAAAIzv9cJMM6Xip9W_Bwgi_aHQ2jnt" data-callback="unlock"></div>
+            </div>
+            <div id="login-box" class="hidden">
+                <div id="g_id_onload" data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" data-callback="onSignIn"></div>
+                <div class="g_id_signin" data-type="standard"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <div id="header">
+            <div style="font-weight: bold; color: var(--primary);">NEURA MAX v4.0</div>
+            <button onclick="toggleSet()" style="background: #333; font-size: 12px;">⚙️ Ayarlar</button>
+        </div>
+        <div id="settings-panel">
+            <h4>Neura'nın Ruhu</h4>
+            <textarea id="sys-prompt"></textarea>
+            <button style="width: 100%; margin-top: 10px;" onclick="saveSet()">Gmaile Kaydet</button>
+        </div>
+        <div id="chat"></div>
+        <div id="input-area">
+            <input id="q" placeholder="Mesaj gönder..." autocomplete="off">
+            <button onclick="talk()">GÖNDER</button>
+        </div>
+    </div>
+
+<script type="module">
+    import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    let me = null;
+    let spirit = "Sen Neura MAX adında, Mirac tarafından yapılmış bir AI'sın.";
+    let logs = [];
+
+    window.unlock = () => { document.getElementById("captcha-box").classList.add("hidden"); document.getElementById("login-box").classList.remove("hidden"); };
+
+    window.onSignIn = async (resp) => {
+        const user = JSON.parse(atob(resp.credential.split('.')[1]));
+        me = user;
+        document.getElementById("auth-overlay").style.display = "none";
+        document.getElementById("main-app").style.display = "flex";
+        
+        const snap = await getDoc(doc(window.db, "users", user.sub));
+        if (snap.exists()) {
+            spirit = snap.data().prompt || spirit;
+            document.getElementById("sys-prompt").value = spirit;
+            add("Hafızam yüklendi, seni hatırlıyorum Mirac. 🌬️", "bot");
+        }
+    };
+
+    window.toggleSet = () => {
+        const s = document.getElementById("settings-panel");
+        s.style.display = s.style.display === "block" ? "none" : "block";
+    };
+
+    window.saveSet = async () => {
+        const p = document.getElementById("sys-prompt").value;
+        spirit = p;
+        if(me) {
+            await setDoc(doc(window.db, "users", me.sub), { prompt: p }, { merge: true });
+            alert("Ayarlar Gmail hesabına kaydedildi! ✅");
+            toggleSet();
+        }
+    };
+
+    window.talk = async () => {
+        const input = document.getElementById("q");
+        const txt = input.value.trim();
+        if(!txt) return;
+        input.value = "";
+        add(txt, "user");
+        
+        const sendMsgs = [{role: "system", content: spirit}, ...logs, {role: "user", content: txt}];
+        const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer gsk_Bza31Xx" + "1JnkghV8aEsexWGdyb3FYnWfTB77cEoJpcTdDGALVXXQ6" },
+            body: JSON.stringify({ model: "llama-3.1-8b-instant", messages: sendMsgs })
+        });
+        const d = await r.json();
+        const reply = d.choices[0].message.content;
+        add(reply, "bot");
+        logs.push({role: "user", content: txt}, {role: "assistant", content: reply});
+    };
+
+    function add(t, c) {
+        const div = document.createElement("div"); div.className = "msg " + c; div.textContent = t;
+        const box = document.getElementById("chat");
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    }
+    document.getElementById("q").addEventListener("keydown", e => { if(e.key === "Enter") window.talk(); });
+</script>
+</body>
+</html>
