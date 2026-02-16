@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neura MAX</title>
     
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <style>
@@ -26,6 +27,8 @@
         #input-area { padding: 20px; display: flex; gap: 12px; background: #070709; border-top: 1px solid #222; }
         input { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #333; background: #1a1a1e; color: #fff; outline: none; }
         button { background: var(--primary); border: none; padding: 10px 25px; border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -33,18 +36,25 @@
     <div id="auth-overlay">
         <div class="auth-card">
             <h1 style="color: var(--primary); margin-bottom: 10px;">Neura MAX</h1>
-            <p style="color: #666; margin-bottom: 30px;">Devam etmek icin oturum acin</p>
             
-            <div style="display: flex; justify-content: center; margin-bottom: 10px;">
-                <div id="g_id_onload" data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" data-callback="onSignIn"></div>
-                <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-width="280"></div>
+            <div id="captcha-box" style="margin-bottom: 20px; display: flex; justify-content: center;">
+                <div class="g-recaptcha" data-sitekey="6Lfumm0sAAAAAIzv9cJMM6Xip9W_Bwgi_aHQ2jnt" data-callback="unlock"></div>
             </div>
-            
-            <div style="margin: 15px 0; color: #444; font-size: 12px;">VEYA</div>
-            
-            <button onclick="enterAsGuest()" style="background: transparent; border: 1px solid #444; width: 280px; padding: 10px; color: #aaa; border-radius: 5px; cursor: pointer;">
-                Misafir Olarak Devam Et
-            </button>
+
+            <div id="login-options" class="hidden">
+                <p style="color: #666; margin-bottom: 20px;">Dogrulama basarili! Simdi giris yapin.</p>
+                
+                <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                    <div id="g_id_onload" data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" data-callback="onSignIn"></div>
+                    <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-width="280"></div>
+                </div>
+                
+                <div style="margin: 15px 0; color: #444; font-size: 12px;">VEYA</div>
+                
+                <button onclick="enterAsGuest()" style="background: transparent; border: 1px solid #444; width: 280px; padding: 10px; color: #aaa; border-radius: 5px; cursor: pointer;">
+                    Misafir Olarak Devam Et
+                </button>
+            </div>
         </div>
     </div>
 
@@ -60,13 +70,17 @@
     </div>
 
 <script>
-    // Google ile Giris
+    // reCAPTCHA dogrulaninca calisir
+    window.unlock = () => {
+        document.getElementById("captcha-box").classList.add("hidden");
+        document.getElementById("login-options").classList.remove("hidden");
+    };
+
     window.onSignIn = (resp) => {
         const user = JSON.parse(atob(resp.credential.split('.')[1]));
         enterApp(user.name, "Google");
     };
 
-    // Misafir ile Giris
     window.enterAsGuest = () => {
         enterApp("Misafir", "Guest");
     };
@@ -78,7 +92,6 @@
         add("Sisteme giris yapildi. Size nasil yardimci olabilirim?", "bot");
     }
 
-    // AI Mesajlasma
     async function talk() {
         const input = document.getElementById("q");
         const txt = input.value.trim();
