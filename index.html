@@ -1,121 +1,80 @@
-
-       <div id="auth-overlay">
-    <div class="auth-card" id="auth-box">
-        <h1 style="color: var(--primary);">Wmail Service</h1>
+<div id="auth-overlay">
+    <div class="auth-card">
+        <h1 style="color: var(--primary);">Neura MAX</h1>
+        <p style="color: #888; font-size: 14px; margin-bottom: 20px;">Lütfen bir giriş yöntemi seçin</p>
         
-        <div id="step-wicap">
-            <p style="color: #888;">Guvenlik Dogrulamasi</p>
-            <div style="background: #222; padding: 15px; border-radius: 10px; cursor: pointer; border: 1px solid #444;" onclick="startWind()">
-                <input type="checkbox" id="robot-check" style="cursor: pointer;"> 
-                <label style="cursor: pointer;">Wicap Ben robot degilim | I am not a robot</label>
-            </div>
+        <div id="auth-methods">
+            <div id="g_id_onload" data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" data-callback="onGoogleSignIn"></div>
+            <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-width="280"></div>
+
+            <button class="btn-auth" onclick="alert('Microsoft Azure servisinde şu anda bir sorun yaşıyoruz. Özellik yakında kullanılabilir olacak!')" style="background:#2f2f2f; color:white; border:1px solid #444; width:280px; margin:10px auto; display:flex; align-items:center; justify-content:center; gap:10px; padding:10px; border-radius:5px; cursor:pointer;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="18"> Microsoft
+            </button>
+
+            <button class="btn-auth" onclick="startWmailFlow()" style="background:var(--primary); color:white; border:none; width:280px; margin:10px auto; display:flex; align-items:center; justify-content:center; gap:10px; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;">
+                📧 Wmail Service ile Giriş
+            </button>
+
+            <div style="margin: 10px 0; font-size: 12px; color: #444;">VEYA</div>
+
+            <button onclick="enterAsGuest()" style="background:transparent; color:var(--primary); border:1px solid var(--primary); width:280px; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;">
+                Misafir Hesabı
+            </button>
         </div>
 
-        <div id="step-wind" class="hidden">
-            <div class="loader"></div>
-            <p style="color: var(--primary); font-weight: bold; margin-top: 10px;">X Wind Service Baglaniliyor...</p>
-        </div>
-
-        <div id="step-login" class="hidden">
-            <h3 id="form-title">Hadi oturumunuzu acalim</h3>
-            <div id="login-fields">
-                <input type="text" id="m-user" placeholder="Kullanici Adi" style="margin-bottom:5px;">
-                <span style="color:#555; font-size: 14px; display: block; margin-bottom: 10px;">@wmail.com</span>
-                <input type="password" id="m-pass" placeholder="Sifre" style="margin-bottom: 15px;">
-                <button class="btn-primary" onclick="handleLogin()" style="width:100%;">Giris Yap</button>
-                <p style="font-size: 12px; margin-top: 15px;">Hesabin yok mu? <a href="#" onclick="showRegister()" style="color: var(--primary);">Kayit Ol</a></p>
+        <div id="wmail-flow" class="hidden">
+            <div id="step-wicap">
+                <div style="background:#222; padding:15px; border-radius:10px; border:1px solid #444; cursor:pointer;" onclick="runWind()">
+                    <input type="checkbox" id="robot-check"> Wicap Ben robot degilim
+                </div>
             </div>
-            
-            <div id="register-fields" class="hidden">
-                <input type="text" id="r-user" placeholder="Yeni Kullanici Adi">
-                <input type="password" id="r-pass1" placeholder="Sifre">
-                <input type="password" id="r-pass2" placeholder="Sifre Tekrar">
-                <input type="number" id="r-year" placeholder="Dogum Yili">
-                <button class="btn-primary" onclick="handleRegister()" style="width:100%; margin-top:10px;">Kayit Ol ve Baslat</button>
-                <p style="font-size: 12px; margin-top: 15px;"><a href="#" onclick="showLogin()" style="color: #666;">Geri Don</a></p>
+            <div id="step-wind" class="hidden">
+                <div class="loader"></div>
+                <p style="color:var(--primary);">X Wind Service baglaniliyor...</p>
+            </div>
+            <div id="step-form" class="hidden">
+                <h4 id="f-title">Hadi oturumunuzu acalim</h4>
+                <div id="w-login">
+                    <input type="text" id="m-user" placeholder="Kullanici Adi"> @wmail.com
+                    <input type="password" id="m-pass" placeholder="Sifre" style="margin-top:10px;">
+                    <button class="btn-primary" onclick="handleLogin()" style="width:100%; margin-top:10px;">Giris</button>
+                    <p style="font-size:11px; cursor:pointer;" onclick="showReg()">Kayit Ol</p>
+                </div>
+                <div id="w-reg" class="hidden">
+                    <input type="text" id="r-user" placeholder="Yeni Kullanici">
+                    <input type="password" id="r-pass1" placeholder="Sifre">
+                    <input type="password" id="r-pass2" placeholder="Tekrar">
+                    <input type="number" id="r-year" placeholder="Dogum Yili">
+                    <button class="btn-primary" onclick="handleRegister()" style="width:100%; margin-top:10px;">Kayit Ol</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .btn-primary { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    .hidden { display: none !important; }
-    input { width: 100%; padding: 10px; background: #222; border: 1px solid #444; border-radius: 5px; color: white; box-sizing: border-box; }
-    .loader { border: 4px solid #333; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-</style>
-
 <script>
-    const JB_KEY = "$2a$10$PYes0hav3GwpcfEVgrSDJO" + "OMacCD21pmjLb9JziKF7O2HePDeYGNa";
-    const BIN_ID = "65b128541f567741c696e95b";
+    // Panel Geçişleri
+    function startWmailFlow() {
+        document.getElementById('auth-methods').classList.add('hidden');
+        document.getElementById('wmail-flow').classList.remove('hidden');
+    }
 
-    function startWind() {
+    function runWind() {
         document.getElementById('robot-check').checked = true;
         document.getElementById('step-wicap').classList.add('hidden');
         document.getElementById('step-wind').classList.remove('hidden');
-        
         setTimeout(() => {
             document.getElementById('step-wind').classList.add('hidden');
-            document.getElementById('step-login').classList.remove('hidden');
+            document.getElementById('step-form').classList.remove('hidden');
         }, 2000);
     }
 
-    function showRegister() {
-        document.getElementById('form-title').innerText = "Wmail Kayit Ol";
-        document.getElementById('login-fields').classList.add('hidden');
-        document.getElementById('register-fields').classList.remove('hidden');
+    function showReg() {
+        document.getElementById('f-title').innerText = "Kayit Ol";
+        document.getElementById('w-login').classList.add('hidden');
+        document.getElementById('w-reg').classList.remove('hidden');
     }
 
-    function showLogin() {
-        document.getElementById('form-title').innerText = "Hadi oturumunuzu acalim";
-        document.getElementById('login-fields').classList.remove('hidden');
-        document.getElementById('register-fields').classList.add('hidden');
-    }
-
-    async function handleRegister() {
-        const user = document.getElementById('r-user').value.trim();
-        const p1 = document.getElementById('r-pass1').value;
-        const p2 = document.getElementById('r-pass2').value;
-        const year = document.getElementById('r-year').value;
-
-        if(!user || p1 !== p2 || !year) return alert("Bilgileri kontrol edin.");
-
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { "X-Master-Key": JB_KEY } });
-        let db = await res.json();
-        
-        if(db.record[user + "@wmail.com"]) return alert("Bu mail adresi zaten alinmis.");
-
-        db.record[user + "@wmail.com"] = { password: p1, birth: year };
-
-        await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json", "X-Master-Key": JB_KEY },
-            body: JSON.stringify(db.record)
-        });
-
-        alert("Kayit basarili. Oturum aciliyor.");
-        enterApp(user + "@wmail.com", "Wmail");
-    }
-
-    async function handleLogin() {
-        const user = document.getElementById('m-user').value.trim() + "@wmail.com";
-        const pass = document.getElementById('m-pass').value;
-
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { "X-Master-Key": JB_KEY } });
-        let db = await res.json();
-
-        if(db.record[user] && db.record[user].password === pass) {
-            enterApp(user, "Wmail");
-        } else {
-            alert("Hatali kullanici adi veya sifre.");
-        }
-    }
-
-    function enterApp(name, provider) {
-        document.getElementById("auth-overlay").style.display = "none";
-        document.getElementById("main-app").style.display = "flex";
-        document.getElementById("u-tag").textContent = "| " + name;
-        add("Wmail servisi ile oturum acildi. Hos geldiniz.", "bot");
-    }
+    // Giriş ve Kayıt (JSONbin üzerinden - Önceki kodundaki mantık aynı)
+    // ... handleLogin ve handleRegister fonksiyonlarını buraya ekle ...
 </script>
