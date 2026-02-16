@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neura MAX</title>
+    <title>Neura MAX doğrula</title>
     
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -64,7 +64,7 @@
         </div>
         <div id="chat"></div>
         <div id="input-area">
-            <input id="q" placeholder="Mesajinizi buraya yazin..." autocomplete="off">
+            <input id="q" placeholder="Herhangi birşey sor..." autocomplete="off">
             <button onclick="talk()">GÖNDER</button>
         </div>
     </div>
@@ -89,7 +89,7 @@
         document.getElementById("auth-overlay").style.display = "none";
         document.getElementById("main-app").style.display = "flex";
         document.getElementById("u-tag").textContent = "| " + provider;
-        add("Sisteme giris yapildi. Size nasil yardimci olabilirim?", "bot");
+        add("welcome to neura", "bot");
     }
 
     async function talk() {
@@ -115,7 +115,7 @@
             const d = await r.json();
             add(d.choices[0].message.content, "bot");
         } catch(e) {
-            add("Baglanti hatasi olustu.", "bot");
+            add("❗Network error:Check your network connection.", "bot");
         }
     }
 
