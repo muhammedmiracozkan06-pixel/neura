@@ -3,164 +3,187 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neura MAX</title>
+<title>Neura MAX doğrula</title>
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
 :root { --primary:#3b82f6; --bg:#0b0b0e; --card:#16161a; }
+body { margin:0; background:var(--bg); color:#fff; font-family:'Segoe UI',sans-serif; overflow:hidden; }
 
-body{
-margin:0;
-background:var(--bg);
-color:white;
-font-family:'Segoe UI',sans-serif;
-display:flex;
-flex-direction:column;
-height:100vh;
-}
+#auth-overlay { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:9999; }
+.auth-card { background:var(--card); padding:40px; border-radius:25px; border:1px solid #333; text-align:center; width:320px; box-shadow:0 10px 50px rgba(0,0,0,0.5); }
 
-#header{
-padding:15px 25px;
-background:#111;
-border-bottom:1px solid #222;
-font-weight:bold;
-color:var(--primary);
-}
+#main-app { display:none; flex-direction:column; height:100vh; }
+#header { padding:15px 25px; background:#111; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; }
 
-#chat{
-flex:1;
-overflow-y:auto;
-padding:20px;
-display:flex;
-flex-direction:column;
-gap:12px;
-}
+#chat { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:15px; }
+.msg { padding:14px 18px; border-radius:18px; max-width:75%; font-size:15px; word-wrap:break-word; }
+.user { background:var(--primary); align-self:flex-end; border-bottom-right-radius:4px; }
+.bot { background:#222; align-self:flex-start; border:1px solid #333; border-bottom-left-radius:4px; }
 
-.msg{
-padding:12px 16px;
-border-radius:16px;
-max-width:75%;
-font-size:14px;
-}
+#input-area { padding:20px; display:flex; gap:12px; background:#070709; border-top:1px solid #222; }
+input { flex:1; padding:14px; border-radius:12px; border:1px solid #333; background:#1a1a1e; color:#fff; outline:none; }
+button { background:var(--primary); border:none; padding:10px 25px; border-radius:12px; color:#fff; font-weight:bold; cursor:pointer; }
 
-.user{
-background:var(--primary);
-align-self:flex-end;
-border-bottom-right-radius:4px;
-}
-
-.bot{
-background:#222;
-border:1px solid #333;
-align-self:flex-start;
-border-bottom-left-radius:4px;
-}
-
-#input-area{
-display:flex;
-padding:15px;
-gap:10px;
-background:#070709;
-border-top:1px solid #222;
-}
-
-input{
-flex:1;
-padding:12px;
-border-radius:10px;
-border:1px solid #333;
-background:#1a1a1e;
-color:white;
-outline:none;
-}
-
-button{
-padding:10px 20px;
-border-radius:10px;
-border:none;
-background:var(--primary);
-color:white;
-font-weight:bold;
-cursor:pointer;
-}
+.hidden { display:none !important; }
 </style>
 </head>
-
 <body>
 
-<div id="header">NEURA MAX | Gemini</div>
+<div id="auth-overlay">
+<div class="auth-card">
+<h1 style="color:var(--primary); margin-bottom:10px;">Neura MAX</h1>
+
+<div id="captcha-box" style="margin-bottom:20px; display:flex; justify-content:center;">
+<div class="g-recaptcha"
+     data-sitekey="6Lfumm0sAAAAAIzv9cJMM6Xip9W_Bwgi_aHQ2jnt"
+     data-callback="unlock">
+</div>
+</div>
+
+<div id="login-options" class="hidden">
+<p style="color:#666; margin-bottom:20px;">Doğrulama başarılı! Şimdi giriş yapın.</p>
+
+<div style="display:flex; justify-content:center; margin-bottom:10px;">
+<div id="g_id_onload"
+     data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com"
+     data-callback="onSignIn">
+</div>
+<div class="g_id_signin"
+     data-type="standard"
+     data-theme="filled_black"
+     data-width="280">
+</div>
+</div>
+
+<div style="margin:15px 0; color:#444; font-size:12px;">VEYA</div>
+
+<button onclick="enterAsGuest()"
+style="background:transparent; border:1px solid #444; width:280px; padding:10px; color:#aaa; border-radius:5px;">
+Misafir Olarak Devam Et
+</button>
+</div>
+</div>
+</div>
+
+<div id="main-app">
+<div id="header">
+<div style="font-weight:bold; color:var(--primary);">
+NEURA MAX <span id="u-tag" style="color:#555; font-size:11px;"></span>
+</div>
+</div>
 
 <div id="chat"></div>
 
 <div id="input-area">
-<input id="q" placeholder="Bir şey sor..." autocomplete="off">
+<input id="q" placeholder="Herhangi bir şey sor..." autocomplete="off">
 <button onclick="talk()">GÖNDER</button>
+</div>
 </div>
 
 <script>
+let isVerified = false;
+let isLoading = false;
 
-const API_KEY = "AIzaSyC3vsDyQyLMXkY2obLlK-VJLW11uKirK4Y";
-const MODEL = "gemini-1.5-flash";
-let history = [
-{
-role:"user",
-parts:[{text:"Sen Neura MAX adında zeki, teknik ve detaylı cevaplar veren bir asistansın."}]
+/* CAPTCHA */
+window.unlock = (token) => {
+if (!token) return;
+isVerified = true;
+document.getElementById("captcha-box").classList.add("hidden");
+document.getElementById("login-options").classList.remove("hidden");
+};
+
+/* GOOGLE LOGIN */
+window.onSignIn = (resp) => {
+try {
+if (!resp.credential) return;
+const payload = JSON.parse(atob(resp.credential.split('.')[1]));
+if (!payload.name) throw new Error();
+enterApp(payload.name, "Google");
+} catch {
+alert("Google doğrulama başarısız.");
 }
-];
+};
 
-async function talk(){
+window.enterAsGuest = () => {
+if (!isVerified) {
+alert("Önce captcha doğrulaması yapmalısın.");
+return;
+}
+enterApp("Misafir", "Guest");
+};
+
+function enterApp(name, provider) {
+document.getElementById("auth-overlay").style.display = "none";
+document.getElementById("main-app").style.display = "flex";
+document.getElementById("u-tag").textContent = "| " + provider;
+add("Hoş geldin " + name + " 👋", "bot");
+}
+
+/* CHAT */
+async function talk() {
+if (isLoading) return;
+
 const input = document.getElementById("q");
 const txt = input.value.trim();
-if(!txt) return;
+if (!txt) return;
 
-input.value="";
-add(txt,"user");
+isLoading = true;
+input.value = "";
+add(txt, "user");
 
-history.push({
-role:"user",
-parts:[{text:txt}]
-});
+const loadingMsg = add("Yazıyor...", "bot");
 
-try{
-
-const r = await fetch(
-`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
-{
+try {
+const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
 method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({contents:history})
-}
-);
+headers:{
+"Content-Type":"application/json",
+"Authorization":"Bearer gsk_Bza31Xx" + "1JnkghV8aEsexWGdyb3FYnWfTB77cEoJpcTdDGALVXXQ6"
+},
+body:JSON.stringify({
+model:"llama-3.1-8b-instant",
+messages:[
+{role:"system", content:"Sen yardımcı bir asistansın."},
+{role:"user", content:txt}
+]
+})
+});
 
 const d = await r.json();
+loadingMsg.remove();
 
-const reply = d.candidates[0].content.parts[0].text;
-
-history.push({
-role:"model",
-parts:[{text:reply}]
-});
-
-add(reply,"bot");
-
-}catch(e){
-add("Gemini bağlantı hatası.","bot");
+if (!r.ok) {
+add("API hata verdi 😔", "bot");
+} else if (d.choices && d.choices.length > 0) {
+add(d.choices[0].message.content, "bot");
+} else {
+add("Yanıt alınamadı.", "bot");
 }
 
+} catch {
+loadingMsg.remove();
+add("❗ Network hatası oluştu.", "bot");
 }
 
-function add(t,c){
-const div=document.createElement("div");
-div.className="msg "+c;
-div.textContent=t;
-const box=document.getElementById("chat");
+isLoading = false;
+}
+
+function add(t, c) {
+const div = document.createElement("div");
+div.className = "msg " + c;
+div.textContent = t;
+const box = document.getElementById("chat");
 box.appendChild(div);
-box.scrollTop=box.scrollHeight;
+box.scrollTop = box.scrollHeight;
+return div;
 }
 
-document.getElementById("q").addEventListener("keydown",e=>{
+document.getElementById("q").addEventListener("keydown", e=>{
 if(e.key==="Enter") talk();
 });
-
 </script>
 
 </body>
