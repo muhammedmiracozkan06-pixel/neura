@@ -19,9 +19,13 @@ body { margin:0; background:var(--bg); color:#fff; font-family:'Segoe UI',sans-s
 #header { padding:15px 25px; background:#111; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; }
 
 #chat { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:15px; }
-.msg { padding:14px 18px; border-radius:18px; max-width:75%; font-size:15px; word-wrap:break-word; }
+.msg { padding:14px 18px; border-radius:18px; max-width:75%; font-size:15px; word-wrap:break-word; line-height: 1.4; }
 .user { background:var(--primary); align-self:flex-end; border-bottom-right-radius:4px; }
 .bot { background:#222; align-self:flex-start; border:1px solid #333; border-bottom-left-radius:4px; }
+
+/* Aranıyor yazısı için tatlı bir efekt */
+.searching { color: var(--primary); font-style: italic; font-size: 13px; margin-top: -10px; margin-left: 5px; animation: blink 1s infinite; }
+@keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
 #input-area { padding:20px; display:flex; gap:12px; background:#070709; border-top:1px solid #222; }
 input { flex:1; padding:14px; border-radius:12px; border:1px solid #333; background:#1a1a1e; color:#fff; outline:none; }
@@ -77,8 +81,10 @@ NEURA MAX <span id="u-tag" style="color:#555; font-size:11px;"></span>
 
 <div id="chat"></div>
 
+<div id="status-container" style="padding: 0 20px;"></div>
+
 <div id="input-area">
-<input id="q" placeholder="Herhangi bir şey sor..." autocomplete="off">
+<input id="q" placeholder="İnternette herhangi bir şey ara..." autocomplete="off">
 <button onclick="talk()">GÖNDER</button>
 </div>
 </div>
@@ -86,8 +92,9 @@ NEURA MAX <span id="u-tag" style="color:#555; font-size:11px;"></span>
 <script>
 let isVerified = false;
 let isLoading = false;
+const TAVILY_KEY = "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"; // Tavily API Anahtarın
 
-/* CAPTCHA */
+/* CAPTCHA - Dokunulmadı */
 window.unlock = (token) => {
 if (!token) return;
 isVerified = true;
@@ -95,7 +102,7 @@ document.getElementById("captcha-box").classList.add("hidden");
 document.getElementById("login-options").classList.remove("hidden");
 };
 
-/* GOOGLE LOGIN */
+/* GOOGLE LOGIN - Dokunulmadı */
 window.onSignIn = (resp) => {
 try {
 if (!resp.credential) return;
@@ -119,14 +126,15 @@ function enterApp(name, provider) {
 document.getElementById("auth-overlay").style.display = "none";
 document.getElementById("main-app").style.display = "flex";
 document.getElementById("u-tag").textContent = "| " + provider;
-add("Hoş geldin " + name + " 👋", "bot");
+add("Hoş geldin " + name + " 👋 İnternette senin için ne araştırmamı istersin?", "bot");
 }
 
-/* CHAT */
+/* YENİ NESİL AKILLI ARAMA (TAVILY) */
 async function talk() {
 if (isLoading) return;
 
 const input = document.getElementById("q");
+const statusContainer = document.getElementById("status-container");
 const txt = input.value.trim();
 if (!txt) return;
 
@@ -134,38 +142,39 @@ isLoading = true;
 input.value = "";
 add(txt, "user");
 
-const loadingMsg = add("Yazıyor...", "bot");
+// "Aranıyor..." yazısını çıkarıyoruz 🔍
+const statusDiv = document.createElement("div");
+statusDiv.className = "searching";
+statusDiv.innerHTML = "Aranıyor... 🔍";
+statusContainer.appendChild(statusDiv);
 
 try {
-const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+const r = await fetch("https://api.tavily.com/search", {
 method:"POST",
-headers:{
-"Content-Type":"application/json",
-"Authorization":"Bearer gsk_Bza31Xx" + "1JnkghV8aEsexWGdyb3FYnWfTB77cEoJpcTdDGALVXXQ6"
-},
+headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
-model:"llama-3.1-8b-instant",
-messages:[
-{role:"system", content:"Sen yardımcı bir asistansın."},
-{role:"user", content:txt}
-]
+api_key: TAVILY_KEY,
+query: txt,
+search_depth: "smart",
+include_answer: true
 })
 });
 
 const d = await r.json();
-loadingMsg.remove();
+statusDiv.remove(); // Arama bitince yazıyı kaldır
 
-if (!r.ok) {
-add("API hata verdi 😔", "bot");
-} else if (d.choices && d.choices.length > 0) {
-add(d.choices[0].message.content, "bot");
+if (d.answer) {
+add(d.answer, "bot");
+} else if (d.results && d.results.length > 0) {
+add(d.results[0].content, "bot");
 } else {
-add("Yanıt alınamadı.", "bot");
+add("Üzgünüm kanka, buna dair bir sonuç bulamadım. ✨", "bot");
 }
 
-} catch {
-loadingMsg.remove();
-add("❗ Network hatası oluştu.", "bot");
+} catch (err) {
+statusDiv.remove();
+add("❗ İnternet taraması sırasında bir hata oluştu.", "bot");
+console.error(err);
 }
 
 isLoading = false;
