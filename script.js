@@ -1,38 +1,54 @@
-async function neuraSorgula() {
-    const input = document.getElementById("user-input");
-    const status = document.getElementById("status");
-    const responseArea = document.getElementById("response-text");
-    const soru = input.value;
+let isLoading = false;
 
-    if (!soru) return;
+async function talk() {
+    if (isLoading) return;
 
-    // 1. Arama başladığında yazı çıksın
-    status.innerText = "İnternet taranıyor... 🔍";
-    responseArea.innerText = "Düşünüyorum...";
+    const input = document.getElementById("q");
+    const statusContainer = document.getElementById("status-container");
+    const txt = input.value.trim();
+    if (!txt) return;
+
+    isLoading = true;
     input.value = "";
+    add(txt, "user");
+
+    // 🔍 Google amcaya soruyoruz yazısı
+    const statusDiv = document.createElement("div");
+    statusDiv.className = "searching";
+    statusDiv.style.color = "#3b82f6";
+    statusDiv.style.fontSize = "13px";
+    statusDiv.style.marginBottom = "5px";
+    statusDiv.innerHTML = "Google verileri taranıyor... ✨🔍";
+    statusContainer.appendChild(statusDiv);
+
+    // SENİN TAZE CEPHANELERİN 💎
+    const API_KEY = "AIzaSyCOsLPocFBBDOyD1OxUcS8eGj-fBTVGm3o";
+    const CX_ID = "407bb5243e1e54e15";
 
     try {
-        // Tavily API bağlantısı
-        const response = await fetch("https://api.tavily.com/search", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                api_key: "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", // ANAHTARIN BURADA
-                query: soru,
-                search_depth: "smart",
-                include_answer: true
-            })
-        });
+        // Google Custom Search API bağlantısı
+        const r = await fetch(`https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX_ID}&q=${encodeURIComponent(txt)}`);
+        const d = await r.json();
+        
+        statusDiv.remove(); // Yazıyı kaldır
 
-        const data = await response.json();
+        if (d.items && d.items.length > 0) {
+            // Google'ın bulduğu en iyi sonucun açıklamasını veriyoruz
+            const cevap = d.items[0].snippet;
+            add(cevap, "bot");
+            
+            // Eğer istersen kaynağı da altına ekleyebiliriz:
+            // add("Kaynak: " + d.items[0].link, "bot"); 
+        } else {
+            add("üzgünüm bu soru ile ilgli internette hiçbirşey yok.", "bot");
+        }
 
-        // 2. Arama bitti, yazıyı kaldır ve cevabı bas!
-        status.innerText = ""; 
-        responseArea.innerText = data.answer || "Buna dair net bir bilgi bulamadım kanka.";
-
-    } catch (error) {
-        status.innerText = "";
-        responseArea.innerText = "Hata oluştu! İnternet bağlantını kontrol et kanka. ❌";
-        console.error("Hata:", error);
+    } catch (err) {
+        if(statusDiv) statusDiv.remove();
+        add("❗ Network error", "bot");
+        console.error(err);
     }
+
+    isLoading = false;
+}
 }
