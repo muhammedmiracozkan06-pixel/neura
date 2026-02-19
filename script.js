@@ -1,73 +1,75 @@
-let isVerified = false;
+let isRobotVerified = false;
 let isLoading = false;
 
-/* AUTH İŞLEMLERİ */
-window.unlock = (token) => {
-    if (!token) return;
-    isVerified = true;
-    document.getElementById("captcha-box").classList.add("hidden");
-    document.getElementById("login-options").classList.remove("hidden");
+// 1. ADIM: Captcha Başarılı Olunca
+window.onCaptchaSuccess = function(token) {
+    isRobotVerified = true;
+    document.getElementById("captcha-container").classList.add("hidden");
+    document.getElementById("login-container").classList.remove("hidden");
 };
 
-window.onSignIn = (resp) => {
-    try {
-        if (!resp.credential) return;
-        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
-        enterApp(payload.name, "Google");
-    } catch {
-        alert("Giriş başarısız.");
-    }
-};
-
-window.enterAsGuest = () => {
-    if (!isVerified) return;
-    enterApp("Misafir", "Guest");
-};
-
-function enterApp(name, provider) {
+// 2. ADIM: Google Giriş Başarılı Olunca
+window.handleCredentialResponse = function(response) {
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
     document.getElementById("auth-overlay").style.display = "none";
     document.getElementById("main-app").style.display = "flex";
-    document.getElementById("u-tag").textContent = "| " + provider;
-    addMessage("Hoş geldin " + name + ". Size nasıl yardımcı olabilirim?", "bot");
-}
+    document.getElementById("user-display").textContent = `| ${payload.name}`;
+    
+    // Varsa eski API Key'i yükle
+    const savedKey = localStorage.getItem("neura_key");
+    if(savedKey) document.getElementById("api-key").value = savedKey;
+    
+    addMessage(`Hoş geldin ${payload.name}! Neura Max hizmetinizde.`, "bot");
+};
 
-/* ARAMA İŞLEMİ (DUCKDUCKGO) */
+// 3. ADIM: Arama/Sohbet Fonksiyonu (OpenRouter)
 async function talk() {
     if (isLoading) return;
 
     const input = document.getElementById("q");
+    const apiKey = document.getElementById("api-key").value.trim();
+    const model = document.getElementById("model-select").value;
     const query = input.value.trim();
-    if (!query) return;
 
+    if (!query) return;
+    if (!apiKey) {
+        addMessage("Lütfen API anahtarını girin!", "bot");
+        return;
+    }
+
+    localStorage.setItem("neura_key", apiKey);
     isLoading = true;
     input.value = "";
     addMessage(query, "user");
-
-    const statusContainer = document.getElementById("status-container");
-    const statusDiv = document.createElement("div");
-    statusDiv.className = "searching";
-    statusDiv.innerHTML = "Bilgi getiriliyor...";
-    statusContainer.appendChild(statusDiv);
+    
+    const status = document.getElementById("status");
+    status.innerHTML = `<div class="status-text">${model} işleniyor...</div>`;
 
     try {
-        const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
-        const response = await fetch(url);
-        const data = await response.json();
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [{ role: "user", content: query }]
+            })
+        });
 
-        statusDiv.remove();
+        const data = await res.json();
+        status.innerHTML = "";
 
-        if (data.AbstractText) {
-            addMessage(data.AbstractText, "bot");
-        } else if (data.RelatedTopics && data.RelatedTopics.length > 0) {
-            addMessage(data.RelatedTopics[0].Text, "bot");
+        if (data.choices) {
+            addMessage(data.choices[0].message.content, "bot");
         } else {
-            addMessage("Üzgünüm, bu konu hakkında sonuç bulunamadı.", "bot");
+            addMessage("Hata: " + (data.error?.message || "Servis yanıt vermedi."), "bot");
         }
-    } catch (error) {
-        if (statusDiv) statusDiv.remove();
-        addMessage("Bağlantı hatası oluştu.", "bot");
+    } catch (e) {
+        status.innerHTML = "";
+        addMessage("Bağlantı hatası!", "bot");
     }
-
     isLoading = false;
 }
 
@@ -80,6 +82,4 @@ function addMessage(text, side) {
     chat.scrollTop = chat.scrollHeight;
 }
 
-document.getElementById("q").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") talk();
-});
+document.getElementById("q").addEventListener("keydown", (e) => { if(e.key === "Enter") talk(); });
