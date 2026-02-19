@@ -1,5 +1,3 @@
-let isLoading = false;
-
 async function talk() {
     if (isLoading) return;
 
@@ -12,43 +10,45 @@ async function talk() {
     input.value = "";
     add(txt, "user");
 
-    // 🔍 Google amcaya soruyoruz yazısı
     const statusDiv = document.createElement("div");
     statusDiv.className = "searching";
     statusDiv.style.color = "#3b82f6";
-    statusDiv.style.fontSize = "13px";
-    statusDiv.style.marginBottom = "5px";
-    statusDiv.innerHTML = "Google verileri taranıyor... ✨🔍";
+    statusDiv.innerHTML = "Neura Max Google'a bağlanıyor... 🔍";
     statusContainer.appendChild(statusDiv);
 
-    // SENİN TAZE CEPHANELERİN 💎
     const API_KEY = "AIzaSyCOsLPocFBBDOyD1OxUcS8eGj-fBTVGm3o";
     const CX_ID = "407bb5243e1e54e15";
 
     try {
-        // Google Custom Search API bağlantısı
-        const r = await fetch(`https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX_ID}&q=${encodeURIComponent(txt)}`);
-        const d = await r.json();
+        console.log("Sorgu gönderiliyor: " + txt); // Konsol Takibi
+
+        const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX_ID}&q=${encodeURIComponent(txt)}`;
+        const r = await fetch(url);
         
-        statusDiv.remove(); // Yazıyı kaldır
+        // Google'dan gelen ham cevabı kontrol edelim
+        const d = await r.json();
+        console.log("Google'dan gelen ham veri:", d); // F12'de buraya bakacağız!
+
+        statusDiv.remove();
 
         if (d.items && d.items.length > 0) {
-            // Google'ın bulduğu en iyi sonucun açıklamasını veriyoruz
-            const cevap = d.items[0].snippet;
-            add(cevap, "bot");
-            
-            // Eğer istersen kaynağı da altına ekleyebiliriz:
-            // add("Kaynak: " + d.items[0].link, "bot"); 
+            // İlk sonucu ve açıklamasını al
+            const ilkSonuc = d.items[0];
+            add(ilkSonuc.snippet, "bot");
+            console.log("Başarıyla yazdırıldı!");
+        } else if (d.error) {
+            // Google bir hata mesajı gönderdiyse
+            add("Google Hatası: " + d.error.message, "bot");
+            console.error("Hata detayı:", d.error);
         } else {
-            add("üzgünüm bu soru ile ilgli internette hiçbirşey yok.", "bot");
+            add("Google sonuç bulamadı. Belki de 'Tüm Web'de Ara' ayarı kapalıdır kanka? 🧐", "bot");
         }
 
     } catch (err) {
         if(statusDiv) statusDiv.remove();
-        add("❗ Network error", "bot");
-        console.error(err);
+        add("❗ Bağlantı kurulamadı. İnternetini veya API kodlarını kontrol et.", "bot");
+        console.error("Catch Hatası:", err);
     }
 
     isLoading = false;
-}
 }
