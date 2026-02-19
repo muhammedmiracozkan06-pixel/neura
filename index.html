@@ -32,8 +32,7 @@
         /* Giriş Alanı */
         #input-area { padding:20px; display:flex; gap:12px; background:#070709; border-top:1px solid #222; }
         input#q { flex:1; padding:14px; border-radius:12px; border:1px solid #333; background:#1a1a1e; color:#fff; outline:none; }
-        button#send-btn { background:var(--primary); border:none; padding:10px 25px; border-radius:12px; color:#fff; cursor:pointer; font-weight:bold; transition: 0.3s; }
-        button#send-btn:hover { opacity: 0.8; }
+        button#send-btn { background:var(--primary); border:none; padding:10px 25px; border-radius:12px; color:#fff; cursor:pointer; font-weight:bold; }
 
         .status-text { font-size:12px; color:#555; margin-left:20px; margin-bottom:10px; }
 
@@ -48,13 +47,13 @@
 
 <div id="auth-overlay">
     <div class="auth-card">
-        <h2 style="color:var(--primary); margin-bottom:20px; letter-spacing: 1px;">NEURA MAX</h2>
-        <p style="font-size:13px; color:#666; margin-bottom:25px;">Wind Developer güvenli giriş sistemi</p>
+        <h2 style="color:var(--primary); margin-bottom:20px;">NEURA MAX</h2>
+        <p style="font-size:13px; color:#666; margin-bottom:25px;">Google ile giriş yapın</p>
         <div id="g_id_onload" 
              data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" 
              data-callback="handleCredentialResponse">
         </div>
-        <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-size="large" data-width="280"></div>
+        <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-size="large"></div>
     </div>
 </div>
 
@@ -75,8 +74,8 @@
     <div id="status"></div>
 
     <div id="input-area">
-        <input id="q" placeholder="Bir şey sorun..." autocomplete="off">
-        <button id="send-btn" onclick="talk()">GÖNDER</button>
+        <input id="q" placeholder="Mesajınızı yazın..." autocomplete="off">
+        <button id="send-btn">GÖNDER</button>
     </div>
 </div>
 
