@@ -1,54 +1,85 @@
+let isVerified = false;
+let isLoading = false;
+
+/* AUTH İŞLEMLERİ */
+window.unlock = (token) => {
+    if (!token) return;
+    isVerified = true;
+    document.getElementById("captcha-box").classList.add("hidden");
+    document.getElementById("login-options").classList.remove("hidden");
+};
+
+window.onSignIn = (resp) => {
+    try {
+        if (!resp.credential) return;
+        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
+        enterApp(payload.name, "Google");
+    } catch {
+        alert("Giriş başarısız.");
+    }
+};
+
+window.enterAsGuest = () => {
+    if (!isVerified) return;
+    enterApp("Misafir", "Guest");
+};
+
+function enterApp(name, provider) {
+    document.getElementById("auth-overlay").style.display = "none";
+    document.getElementById("main-app").style.display = "flex";
+    document.getElementById("u-tag").textContent = "| " + provider;
+    addMessage("Hoş geldin " + name + ". Size nasıl yardımcı olabilirim?", "bot");
+}
+
+/* ARAMA İŞLEMİ (DUCKDUCKGO) */
 async function talk() {
     if (isLoading) return;
 
     const input = document.getElementById("q");
-    const statusContainer = document.getElementById("status-container");
-    const txt = input.value.trim();
-    if (!txt) return;
+    const query = input.value.trim();
+    if (!query) return;
 
     isLoading = true;
     input.value = "";
-    add(txt, "user");
+    addMessage(query, "user");
 
+    const statusContainer = document.getElementById("status-container");
     const statusDiv = document.createElement("div");
     statusDiv.className = "searching";
-    statusDiv.style.color = "#3b82f6";
-    statusDiv.innerHTML = "Neura Max Google'a bağlanıyor... 🔍";
+    statusDiv.innerHTML = "Bilgi getiriliyor...";
     statusContainer.appendChild(statusDiv);
 
-    const API_KEY = "AIzaSyCOsLPocFBBDOyD1OxUcS8eGj-fBTVGm3o";
-    const CX_ID = "407bb5243e1e54e15";
-
     try {
-        console.log("Sorgu gönderiliyor: " + txt); // Konsol Takibi
-
-        const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX_ID}&q=${encodeURIComponent(txt)}`;
-        const r = await fetch(url);
-        
-        // Google'dan gelen ham cevabı kontrol edelim
-        const d = await r.json();
-        console.log("Google'dan gelen ham veri:", d); // F12'de buraya bakacağız!
+        const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+        const response = await fetch(url);
+        const data = await response.json();
 
         statusDiv.remove();
 
-        if (d.items && d.items.length > 0) {
-            // İlk sonucu ve açıklamasını al
-            const ilkSonuc = d.items[0];
-            add(ilkSonuc.snippet, "bot");
-            console.log("Başarıyla yazdırıldı!");
-        } else if (d.error) {
-            // Google bir hata mesajı gönderdiyse
-            add("Google Hatası: " + d.error.message, "bot");
-            console.error("Hata detayı:", d.error);
+        if (data.AbstractText) {
+            addMessage(data.AbstractText, "bot");
+        } else if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+            addMessage(data.RelatedTopics[0].Text, "bot");
         } else {
-            add("Google sonuç bulamadı. Belki de 'Tüm Web'de Ara' ayarı kapalıdır kanka? 🧐", "bot");
+            addMessage("Üzgünüm, bu konu hakkında sonuç bulunamadı.", "bot");
         }
-
-    } catch (err) {
-        if(statusDiv) statusDiv.remove();
-        add("❗ Bağlantı kurulamadı. İnternetini veya API kodlarını kontrol et.", "bot");
-        console.error("Catch Hatası:", err);
+    } catch (error) {
+        if (statusDiv) statusDiv.remove();
+        addMessage("Bağlantı hatası oluştu.", "bot");
     }
 
     isLoading = false;
 }
+
+function addMessage(text, side) {
+    const div = document.createElement("div");
+    div.className = `msg ${side}`;
+    div.textContent = text;
+    const chat = document.getElementById("chat");
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+document.getElementById("q").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") talk();
+});
