@@ -1,28 +1,22 @@
-let isRobotVerified = false;
 let isLoading = false;
 
-// 1. ADIM: Captcha Başarılı Olunca
-window.onCaptchaSuccess = function(token) {
-    isRobotVerified = true;
-    document.getElementById("captcha-container").classList.add("hidden");
-    document.getElementById("login-container").classList.remove("hidden");
-};
-
-// 2. ADIM: Google Giriş Başarılı Olunca
+// Google Giriş Başarılı Olunca Çalışacak Fonksiyon
 window.handleCredentialResponse = function(response) {
+    // Google'dan gelen veriyi çöz
     const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    
+    // Arayüzü Değiştir
     document.getElementById("auth-overlay").style.display = "none";
     document.getElementById("main-app").style.display = "flex";
     document.getElementById("user-display").textContent = `| ${payload.name}`;
     
-    // Varsa eski API Key'i yükle
+    // Kayıtlı API anahtarı varsa getir
     const savedKey = localStorage.getItem("neura_key");
     if(savedKey) document.getElementById("api-key").value = savedKey;
     
-    addMessage(`Hoş geldin ${payload.name}! Neura Max hizmetinizde.`, "bot");
+    addMessage(`Hoş geldin ${payload.name}! Bugün sana nasıl yardımcı olabilirim?`, "bot");
 };
 
-// 3. ADIM: Arama/Sohbet Fonksiyonu (OpenRouter)
 async function talk() {
     if (isLoading) return;
 
@@ -33,7 +27,7 @@ async function talk() {
 
     if (!query) return;
     if (!apiKey) {
-        addMessage("Lütfen API anahtarını girin!", "bot");
+        addMessage("Lütfen üstteki kutuya OpenRouter API anahtarını girin!", "bot");
         return;
     }
 
@@ -43,7 +37,7 @@ async function talk() {
     addMessage(query, "user");
     
     const status = document.getElementById("status");
-    status.innerHTML = `<div class="status-text">${model} işleniyor...</div>`;
+    status.innerHTML = `<div class="status-text">${model} yanıt hazırlıyor...</div>`;
 
     try {
         const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -64,11 +58,11 @@ async function talk() {
         if (data.choices) {
             addMessage(data.choices[0].message.content, "bot");
         } else {
-            addMessage("Hata: " + (data.error?.message || "Servis yanıt vermedi."), "bot");
+            addMessage("Hata: " + (data.error?.message || "Bir sorun oluştu."), "bot");
         }
     } catch (e) {
         status.innerHTML = "";
-        addMessage("Bağlantı hatası!", "bot");
+        addMessage("Bağlantı kurulamadı!", "bot");
     }
     isLoading = false;
 }
