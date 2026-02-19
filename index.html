@@ -84,7 +84,7 @@ NEURA MAX <span id="u-tag" style="color:#555; font-size:11px;"></span>
 <div id="status-container" style="padding: 0 20px;"></div>
 
 <div id="input-area">
-<input id="q" placeholder="İnternette herhangi bir şey ara..." autocomplete="off">
+<input id="q" placeholder="Google amcada ara..." autocomplete="off">
 <button onclick="talk()">GÖNDER</button>
 </div>
 </div>
@@ -92,9 +92,12 @@ NEURA MAX <span id="u-tag" style="color:#555; font-size:11px;"></span>
 <script>
 let isVerified = false;
 let isLoading = false;
-const TAVILY_KEY = "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"; // Tavily API Anahtarın
 
-/* CAPTCHA - Dokunulmadı */
+// GOOGLE CEPHANELERİN 🛡️
+const GOOGLE_API_KEY = "AIzaSyCOsLPocFBBDOyD1OxUcS8eGj-fBTVGm3o";
+const GOOGLE_CX_ID = "407bb5243e1e54e15";
+
+/* CAPTCHA */
 window.unlock = (token) => {
 if (!token) return;
 isVerified = true;
@@ -102,7 +105,7 @@ document.getElementById("captcha-box").classList.add("hidden");
 document.getElementById("login-options").classList.remove("hidden");
 };
 
-/* GOOGLE LOGIN - Dokunulmadı */
+/* GOOGLE LOGIN */
 window.onSignIn = (resp) => {
 try {
 if (!resp.credential) return;
@@ -126,10 +129,10 @@ function enterApp(name, provider) {
 document.getElementById("auth-overlay").style.display = "none";
 document.getElementById("main-app").style.display = "flex";
 document.getElementById("u-tag").textContent = "| " + provider;
-add("Hoş geldin " + name + " 👋 İnternette senin için ne araştırmamı istersin?", "bot");
+add("Hoş geldin " + name + " 👋 Bugün senin için ne araştırmamı istersin?", "bot");
 }
 
-/* YENİ NESİL AKILLI ARAMA (TAVILY) */
+/* YENİ NESİL GOOGLE ARAMA */
 async function talk() {
 if (isLoading) return;
 
@@ -145,35 +148,27 @@ add(txt, "user");
 // "Aranıyor..." yazısını çıkarıyoruz 🔍
 const statusDiv = document.createElement("div");
 statusDiv.className = "searching";
-statusDiv.innerHTML = "Aranıyor... 🔍";
+statusDiv.innerHTML = "Google taranıyor... ✨🔍";
 statusContainer.appendChild(statusDiv);
 
 try {
-const r = await fetch("https://api.tavily.com/search", {
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({
-api_key: TAVILY_KEY,
-query: txt,
-search_depth: "smart",
-include_answer: true
-})
-});
-
+// Google Custom Search API bağlantısı 🚀
+const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CX_ID}&q=${encodeURIComponent(txt)}`;
+const r = await fetch(url);
 const d = await r.json();
+
 statusDiv.remove(); // Arama bitince yazıyı kaldır
 
-if (d.answer) {
-add(d.answer, "bot");
-} else if (d.results && d.results.length > 0) {
-add(d.results[0].content, "bot");
+if (d.items && d.items.length > 0) {
+    // Google'ın getirdiği en yakın bilgiyi basıyoruz
+    add(d.items[0].snippet, "bot");
 } else {
-add("Üzgünüm kanka, buna dair bir sonuç bulamadım. ✨", "bot");
+    add("Üzgünüm kanka, Google'da buna dair bir sonuç bulamadım. Belki de çok gizli bir şeydir? ✨", "bot");
 }
 
 } catch (err) {
-statusDiv.remove();
-add("❗ İnternet taraması sırasında bir hata oluştu.", "bot");
+if(statusDiv) statusDiv.remove();
+add("❗ Google'a bağlanırken bir sorun oluştu kanka.", "bot");
 console.error(err);
 }
 
@@ -196,4 +191,5 @@ if(e.key==="Enter") talk();
 </script>
 
 </body>
+</html>
 </html>
