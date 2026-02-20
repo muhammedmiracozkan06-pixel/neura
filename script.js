@@ -18,12 +18,12 @@ window.onSignIn = (resp) => {
         const payload = JSON.parse(atob(resp.credential.split('.')[1]));
         enterApp(payload.name, "Google");
     } catch {
-        alert("Giriş sırasında bir hata oluştu.");
+        alert("Kimlik doğrulama işlemi sırasında bir hata oluştu.");
     }
 };
 
 window.enterAsGuest = () => {
-    if (!isVerified) return alert("Lütfen önce doğrulama yapın.");
+    if (!isVerified) return alert("Devam etmek için lütfen güvenlik doğrulamasını tamamlayınız.");
     enterApp("Misafir", "Guest");
 };
 
@@ -31,7 +31,8 @@ function enterApp(name, provider) {
     document.getElementById("auth-overlay").style.display = "none";
     document.getElementById("main-app").style.display = "flex";
     document.getElementById("u-tag").textContent = "| " + provider;
-    addMsg(`Selam ${name}! Ben Neura ne sormak istersin? uyarı bazı modeller gemma gibi çalışmayabilir ve çok normaldir..`, "bot");
+    // Kurumsal ve profesyonel karşılama
+    addMsg(`Sayın ${name}, Neura MAX sistemine hoş geldiniz. Size nasıl yardımcı olabilirim? Not: Seçilen modele bağlı olarak yanıt süreleri değişiklik gösterebilir.`, "bot");
 }
 
 /* CHAT FONKSİYONU */
@@ -48,7 +49,7 @@ async function talk() {
     qInput.value = "";
     addMsg(val, "user");
 
-    const loadDiv = addMsg("Düşünüyorum...", "bot");
+    const loadDiv = addMsg("Yanıt oluşturuluyor...", "bot");
     const selectedModel = modelSelect.value;
 
     try {
@@ -61,7 +62,10 @@ async function talk() {
             body: JSON.stringify({
                 model: selectedModel,
                 messages: [
-                    { role: "system", content: "türkçede akıcı ol hata yapma verilerin doğruluğunu kontrol et.ayrıca gerektiğinde duygusal veya mutlu ol dost gibi davran bol bol duruma göre emoji kullan." },
+                    { 
+                        role: "system", 
+                        content: "Sen Neura MAX'sin. Wind Developer tarafından geliştirilmiş profesyonel bir yapay zeka asistanısın. Yanıtlarında akıcı, bilgilendirici ve kurumsal bir dil kullan. Gerektiğinde profesyonelliği bozmadan uygun emojilerle yanıtlarını zenginleştir." 
+                    },
                     { role: "user", content: val }
                 ]
             })
@@ -73,11 +77,11 @@ async function talk() {
         if (data.choices && data.choices[0]) {
             addMsg(data.choices[0].message.content, "bot");
         } else {
-            addMsg("Bir hata oluştu sayfayı yenilemeyi deneyin.", "bot");
+            addMsg("Sistem şu anda yanıt veremiyor. Lütfen kısa süre sonra tekrar deneyiniz.", "bot");
         }
     } catch (e) {
         if (loadDiv) loadDiv.remove();
-        addMsg("Bağlantı kesildi ", "bot");
+        addMsg("Bağlantı hatası: Sunucu ile iletişim kurulamadı.", "bot");
     }
 
     isLoading = false;
