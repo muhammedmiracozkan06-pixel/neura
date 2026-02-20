@@ -1,94 +1,91 @@
-// 🔑 WIND DEVELOPER - NEURA MAX ÖZEL ANAHTARLAR
-const GR_KEY = "gsk_vMTW5X8N8F1kR0S6R0S6WGdyb3FYM3S6R0S6R0S6R0S6R0S6"; 
-const G_CLIENT = "513257852357-69h9l18s8e8j9m1j9m1j9m1j9m1j9m1j.apps.googleusercontent.com";
+/ Mirac'ın özel Groq anahtarı 🔑
+const GROQ_API_KEY = "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";
+let isLoading = false;
 
-// 1. Google OAuth Giriş Sistemi
-window.onload = () => {
-    google.accounts.id.initialize({
-        client_id: G_CLIENT,
-        callback: onLogin
-    });
-    google.accounts.id.renderButton(
-        document.getElementById("google-btn"), 
-        { theme: "filled_blue", size: "large", text: "signin_with" }
-    );
+// Google Giriş Kontrolü
+// Google Giriş Yanıtı
+window.handleCredentialResponse = function(response) {
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    document.getElementById("auth-overlay").style.display = "none";
+    document.getElementById("main-app").style.display = "flex";
+    document.getElementById("user-display").textContent = `| ${payload.name}`;
+    
+    addMessage(`Hoş geldin ${payload.name}! Neura Max asistanın hizmetine hazır.`, "bot");
+    addMessage(`Hoş geldin ${payload.name}! Neura Max hazır.`, "bot");
 };
 
-function onLogin(res) {
-    // Google'dan gelen şifreli veriyi çözüp kullanıcı adını ve fotosunu alıyoruz
-    const user = JSON.parse(atob(res.credential.split('.')[1]));
+// Groq ile Sohbet Fonksiyonu
+// Ana Sohbet Fonksiyonu
+async function talk() {
+    if (isLoading) return;
     
-    // Arayüzü güncelle (Hoş geldin Mirac!)
-    document.getElementById("pfp").src = user.picture;
-    document.getElementById("user-name").innerText = user.name;
+    const input = document.getElementById("q");
+    const model = document.getElementById("model-select").value;
+    const query = input.value.trim();
     
-    // Giriş ekranını gizle, uygulamayı göster
-    document.getElementById("login-page").classList.add("hidden");
-    document.getElementById("app").classList.remove("hidden");
-    
-    addMsg("neura", `Selam ${user.given_name}! Neura Max sistemleri aktif. Wind Developer için çalışmaya hazırım. 🚀`);
-}
+    const model = document.getElementById("model-select").value;
 
-// 2. Araçlar Menüsü (Sol Alt)
-const tBtn = document.getElementById("tools-toggle");
-const tMenu = document.getElementById("tools-popup");
+    if (!query) return;
 
-tBtn.onclick = (e) => {
-    e.stopPropagation();
-    tMenu.classList.toggle("hidden");
-};
-
-// Menü dışına tıklayınca kapat
-document.onclick = () => tMenu.classList.add("hidden");
-
-// 3. Neura Max Mesajlaşma (Gemma 2 Modeli)
-async function send() {
-    const input = document.getElementById("msg-input");
-    const val = input.value.trim();
-    if (!val) return;
-
-    addMsg("user", val);
+    isLoading = true;
     input.value = "";
+    addMessage(query, "user");
+
+    const status = document.getElementById("status");
+    status.innerHTML = `<div class="status-text">${model} işliyor...</div>`;
+    status.innerHTML = `<div class="status-text">${model} yanıt hazırlıyor...</div>`;
 
     try {
-        const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: { 
-                "Authorization": `Bearer ${GR_KEY}`, 
-                "Content-Type": "application/json" 
-            },
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+@@ -38,10 +37,7 @@ async function talk() {
             body: JSON.stringify({
-                model: "gemma2-9b-it", // Mixtral yerine en güncel Gemma 2
+                model: model,
                 messages: [
-                    { role: "system", content: "Sen Neura Max'sin. Kurucun Mirac'tır." },
-                    { role: "user", content: val }
-                ],
-                temperature: 0.7
+                    { 
+                        role: "system", 
+                        content: "Sen Wind Developer tarafından geliştirilen, 10 yaşındaki entrepreneur Mirac'ın asistanı Neura Max'sin. Samimi, zeki ve profesyonel ol." 
+                    },
+                    { role: "system", content: "Sen Wind Developer tarafından geliştirilen zeki bir asistan olan Neura Max'sin." },
+                    { role: "user", content: query }
+                ]
             })
-        });
-        
-        const d = await r.json();
-        const responseText = d.choices[0].message.content;
-        addMsg("neura", responseText);
-        
+@@ -53,28 +49,32 @@ async function talk() {
+        if (data.choices && data.choices[0]) {
+            addMessage(data.choices[0].message.content, "bot");
+        } else {
+            addMessage("Hata: " + (data.error?.message || "Groq yanıt vermedi."), "bot");
+            addMessage("Hata: " + (data.error?.message || "Bir sorun oluştu."), "bot");
+        }
     } catch (e) {
-        addMsg("neura", "Bir bağlantı hatası oluştu ");
-        console.error(e);
+        status.innerHTML = "";
+        addMessage("Bağlantı sorunu! Lütfen internetini kontrol et.", "bot");
+        addMessage("Bağlantı hatası oluştu!", "bot");
     }
+    isLoading = false;
 }
 
-// Mesajı ekrana yazdıran fonksiyon
-function addMsg(type, text) {
-    const box = document.getElementById("chat-display");
-    const d = document.createElement("div");
-    d.className = `msg ${type}`;
-    d.innerText = text;
-    box.appendChild(d);
-    box.scrollTop = box.scrollHeight;
+// Mesaj Baloncuğu Ekleme
+// Mesajı Ekrana Yazma
+function addMessage(text, side) {
+    const div = document.createElement("div");
+    div.className = `msg ${side}`;
+    div.textContent = text;
+    const chat = document.getElementById("chat");
+    chat.appendChild(div);
+    
+    // Otomatik aşağı kaydır
+    chat.scrollTop = chat.scrollHeight;
 }
 
-// Buton ve Enter tuşu dinleyicileri
-document.getElementById("btn-send").onclick = send;
-document.getElementById("msg-input").onkeypress = (e) => { if(e.key === 'Enter') send(); };
-
-function logout() { location.reload(); }
+// Enter Tuşu Dinleyici
+document.getElementById("q").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") talk();
+// Olay Dinleyicileri (Buton ve Enter Tuşu)
+document.addEventListener('DOMContentLoaded', () => {
+    // Gönder butonu dinleyicisi
+    document.getElementById("send-btn").addEventListener("click", talk);
+    
+    // Enter tuşu dinleyicisi
+    document.getElementById("q").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") talk();
+    });
