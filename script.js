@@ -77,7 +77,7 @@ async function talk() {
         }
     } catch (e) {
         if (loadDiv) loadDiv.remove();
-        addMsg("Bağlantı kesildi patron!", "bot");
+        addMsg("Bağlantı kesildi hatası", "bot");
     }
 
     isLoading = false;
