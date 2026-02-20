@@ -61,7 +61,7 @@ async function talk() {
             body: JSON.stringify({
                 model: selectedModel,
                 messages: [
-                    { role: "system", content: "Sen Neura 'sın. Wind Developerin amiral gemisi nr 2 yi kullanıyorsun türkçede akıcı ol hata yapma verilerin doğruluğunu kontrol et.ayrıca gerektiğinde duygusal veya mutlu ol dost gibi davran bol bol duruma göre emoji kullan." },
+                    { role: "system", content: "Sen Neura sın türkçede akıcı ol hata yapma verilerin doğruluğunu kontrol et.ayrıca gerektiğinde duygusal veya mutlu ol dost gibi davran bol bol duruma göre emoji kullan." },
                     { role: "user", content: val }
                 ]
             })
