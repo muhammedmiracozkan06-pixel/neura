@@ -4,49 +4,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neura Max v2 - Wind Developer</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Neura MAX - Hızlı Giriş</title>
+    <title>Neura MAX - Wind Developer</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        :root { --primary:#3b82f6; --bg:#0b0b0e; --card:#16161a; }
+        :root { --primary:#3b82f6; --bg:#0b0b0e; --card:#16161a; --red:#ef4444; }
+        body { margin:0; background:var(--bg); color:#fff; font-family:'Segoe UI',sans-serif; height:100vh; overflow:hidden; }
+
+        /* Auth Ekranı */
+@@ -16,55 +17,65 @@
+        /* Ana Uygulama */
+        #main-app { display:none; flex-direction:column; height:100vh; }
+        #header { padding:15px 25px; background:#111; border-bottom:1px solid #222; display:flex; justify-content:space-between; align-items:center; }
+        .controls { display:flex; gap:10px; }
+        select, .api-key { background:#1a1a1e; color:#fff; border:1px solid #333; padding:8px; border-radius:8px; font-size:12px; }
+        
+        .controls { display:flex; align-items:center; gap:10px; }
+        .new-badge { background: var(--red); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; animation: pulse 2s infinite; cursor: default; }
+        
+        select { background:#1a1a1e; color:#fff; border:1px solid #333; padding:8px; border-radius:8px; font-size:12px; outline:none; cursor:pointer; }
+
+        /* Chat Alanı */
+        #chat { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:15px; }
+        .msg { padding:14px 18px; border-radius:18px; max-width:80%; font-size:15px; line-height: 1.4; white-space: pre-wrap; }
+        .user { background:var(--primary); align-self:flex-end; border-bottom-right-radius:4px; }
+        .bot { background:#222; align-self:flex-start; border:1px solid #333; border-bottom-left-radius:4px; }
+
+        /* Giriş Alanı */
+        #input-area { padding:20px; display:flex; gap:12px; background:#070709; border-top:1px solid #222; }
+        input#q { flex:1; padding:14px; border-radius:12px; border:1px solid #333; background:#1a1a1e; color:#fff; outline:none; }
+        button#send-btn { background:var(--primary); border:none; padding:10px 25px; border-radius:12px; color:#fff; cursor:pointer; font-weight:bold; }
+        
+        button#send-btn { background:var(--primary); border:none; padding:10px 25px; border-radius:12px; color:#fff; cursor:pointer; font-weight:bold; transition: 0.3s; }
+        button#send-btn:hover { opacity: 0.8; }
+
+        .status-text { font-size:12px; color:#555; margin-left:20px; margin-bottom:10px; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <div class="login-card">
-            <h1>Wind Developer</h1>
-            <p>Neura Max'e erişmek için giriş yap</p>
-            <div id="google-login-btn"></div>
+<div id="auth-overlay">
+    <div class="auth-card">
+        <h2 style="color:var(--primary); margin-bottom:20px;">Neura MAX</h2>
+        <p style="font-size:14px; color:#aaa; margin-bottom:25px;">Devam etmek için Google ile giriş yapın.</p>
+        
+        <div id="g_id_onload"
+             data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        <h2 style="color:var(--primary); margin-bottom:20px; letter-spacing: 1px;">NEURA MAX</h2>
+        <p style="font-size:13px; color:#666; margin-bottom:25px;">Wind Developer güvenli giriş sistemi</p>
+        <div id="g_id_onload" 
+             data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" 
+             data-callback="handleCredentialResponse">
+        </div>
+        <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-size="large" data-width="280"></div>
+    </div>
+</div>
+
+<div id="main-app">
+    <div id="header">
+        <div style="font-weight:bold; color:var(--primary);">NEURA MAX <span id="user-display" style="font-size:10px; color:#555;"></span></div>
+        <div style="font-weight:bold; color:var(--primary);">NEURA MAX <span id="user-display" style="font-size:10px; color:#555; margin-left:10px;"></span></div>
+        <div class="controls">
+            <span class="new-badge">YENİ</span>
+            <select id="model-select">
+                <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 (Hızlı)</option>
+                <option value="google/gemini-pro-1.5-exp:free">Gemini 1.5 Pro</option>
+                <option value="mistralai/mistral-7b-instruct:free">Mistral 7B</option>
+                <option value="llama-3.3-70b-versatile">Llama 3.3 70B (En Zeki)</option>
+                <option value="llama-3.1-8b-instant">Llama 3.1 8B (Işık Hızı)</option>
+                <option value="mixtral-8x7b-32768">Mixtral 8x7B (Akıcı)</option>
+            </select>
+            <input type="password" id="api-key" class="api-key" placeholder="OpenRouter API Key">
         </div>
     </div>
 
-    <div id="main-app" class="hidden">
-        <header>
-            <div class="user-info">
-                <img id="user-pic" src="" alt="Profil">
-                <span id="welcome-msg">Hoş geldin!</span>
-            </div>
-            <button onclick="logout()" class="logout-btn">Çıkış</button>
-        </header>
+    <div id="chat"></div>
+    <div id="status"></div>
 
-        <div id="chat-box"></div>
-
-        <div class="input-area">
-            <div class="tools-wrapper">
-                <button id="tools-btn">🛠️ Araçlar</button>
-                <div id="tools-menu" class="hidden">
-                    <p>Burada gösterilecek bir şey yok.</p>
-                </div>
-            </div>
-
-            <div class="input-row">
-                <input type="text" id="user-input" placeholder="Neura'ya bir şeyler sor...">
-                <button id="send-btn">Gönder</button>
-            </div>
-        </div>
+    <div id="input-area">
+        <input id="q" placeholder="Mesajınızı yazın..." autocomplete="off">
+        <input id="q" placeholder="Bir şey sorun..." autocomplete="off">
+        <button id="send-btn" onclick="talk()">GÖNDER</button>
     </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
-<script src="script.js"></script>
-</body>
-</html>
+</div>
