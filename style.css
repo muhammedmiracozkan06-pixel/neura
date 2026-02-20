@@ -1,68 +1,41 @@
 :root {
-    --bg: #0d0d0d;
-    --card: #181818;
-    --accent: #3498db;
-    --text: #ffffff;
+    --primary: #3b82f6;
+    --bg: #0b0b0e;
+    --card: #16161a;
+    --border: #222;
 }
 
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
+body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 .hidden { display: none !important; }
+.center-flex { display: flex; justify-content: center; margin-bottom: 20px; }
 
-/* Login */
-#login-screen {
-    text-align: center;
-    background: var(--card);
-    padding: 40px;
-    border-radius: 24px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-}
+/* Auth Screen */
+#auth-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.auth-card { background: var(--card); padding: 40px; border-radius: 25px; border: 1px solid #333; text-align: center; width: 340px; box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
+.logo-text { color: var(--primary); font-size: 2rem; margin-bottom: 15px; }
+.status-msg { color: #666; margin-bottom: 20px; font-size: 14px; }
+.separator { margin: 15px 0; color: #444; font-size: 11px; font-weight: bold; }
+.guest-btn { background: transparent; border: 1px solid #444; width: 280px; padding: 12px; color: #aaa; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+.guest-btn:hover { border-color: var(--primary); color: #fff; }
 
-/* App Header */
-header {
-    padding: 15px 25px;
-    background: #222;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+/* Main App */
+#main-app { display: none; flex-direction: column; height: 100vh; }
+#header { padding: 12px 25px; background: #111; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.brand { font-weight: bold; color: var(--primary); letter-spacing: 1px; }
+#u-tag { color: #555; font-size: 11px; margin-left: 5px; }
 
-#user-pic { width: 35px; height: 35px; border-radius: 50%; margin-right: 10px; }
+/* Model Selector */
+#model-select { background: #1a1a1e; color: #ccc; border: 1px solid #333; padding: 5px 10px; border-radius: 8px; outline: none; cursor: pointer; font-size: 12px; }
 
-/* Chat Box */
-#chat-box {
-    height: 60vh;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
+/* Chat Area */
+#chat { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 15px; background: radial-gradient(circle at top, #111 0%, #0b0b0e 100%); }
+.msg { padding: 14px 18px; border-radius: 18px; max-width: 80%; font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
+.user { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2); }
+.bot { background: #1a1a1e; align-self: flex-start; border: 1px solid #333; border-bottom-left-radius: 4px; }
 
-/* Tools */
-.tools-wrapper { position: relative; margin-bottom: 5px; }
-#tools-menu {
-    position: absolute;
-    bottom: 45px;
-    left: 0;
-    background: #252525;
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid #444;
-    width: 200px;
-}
-
-/* Input Row */
-.input-area { padding: 20px; background: #1a1a1a; }
-.input-row { display: flex; gap: 10px; }
-input { flex: 1; padding: 12px; border-radius: 12px; border: none; background: #333; color: white; }
-button#send-btn { background: var(--accent); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; }
+/* Input Area */
+#input-area { padding: 20px 30px; display: flex; gap: 12px; background: #070709; border-top: 1px solid var(--border); }
+input { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #333; background: #1a1a1e; color: #fff; outline: none; transition: 0.3s; }
+input:focus { border-color: var(--primary); }
+button#send-btn { background: var(--primary); border: none; padding: 0 30px; border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; transition: 0.3s; }
+button#send-btn:hover { opacity: 0.9; transform: scale(1.02); }
