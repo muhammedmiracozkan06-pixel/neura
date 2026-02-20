@@ -1,91 +1,99 @@
-/ Mirac'ın özel Groq anahtarı 🔑
-const GROQ_API_KEY = "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";
+// 🔑 GÜVENLİ VE GÜNCEL ANAHTAR
+const GK = "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";
+
+let isVerified = false;
 let isLoading = false;
 
-// Google Giriş Kontrolü
-// Google Giriş Yanıtı
-window.handleCredentialResponse = function(response) {
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    document.getElementById("auth-overlay").style.display = "none";
-    document.getElementById("main-app").style.display = "flex";
-    document.getElementById("user-display").textContent = `| ${payload.name}`;
-    
-    addMessage(`Hoş geldin ${payload.name}! Neura Max asistanın hizmetine hazır.`, "bot");
-    addMessage(`Hoş geldin ${payload.name}! Neura Max hazır.`, "bot");
+/* CAPTCHA DOĞRULAMA */
+window.unlock = (token) => {
+    if (!token) return;
+    isVerified = true;
+    document.getElementById("captcha-box").classList.add("hidden");
+    document.getElementById("login-options").classList.remove("hidden");
 };
 
-// Groq ile Sohbet Fonksiyonu
-// Ana Sohbet Fonksiyonu
+/* GOOGLE LOGIN SİSTEMİ */
+window.onSignIn = (resp) => {
+    try {
+        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
+        enterApp(payload.name, "Google");
+    } catch {
+        alert("Giriş sırasında bir hata oluştu.");
+    }
+};
+
+window.enterAsGuest = () => {
+    if (!isVerified) return alert("Lütfen önce doğrulama yapın.");
+    enterApp("Misafir", "Guest");
+};
+
+function enterApp(name, provider) {
+    document.getElementById("auth-overlay").style.display = "none";
+    document.getElementById("main-app").style.display = "flex";
+    document.getElementById("u-tag").textContent = "| " + provider;
+    addMsg(`Selam ${name}! Wind Developer sistemine hoş geldin. Ben Neura ne sormak istersin?.`, "bot");
+}
+
+/* CHAT FONKSİYONU */
 async function talk() {
     if (isLoading) return;
-    
-    const input = document.getElementById("q");
-    const model = document.getElementById("model-select").value;
-    const query = input.value.trim();
-    
-    const model = document.getElementById("model-select").value;
 
-    if (!query) return;
+    const qInput = document.getElementById("q");
+    const modelSelect = document.getElementById("model-select");
+    const val = qInput.value.trim();
+
+    if (!val) return;
 
     isLoading = true;
-    input.value = "";
-    addMessage(query, "user");
+    qInput.value = "";
+    addMsg(val, "user");
 
-    const status = document.getElementById("status");
-    status.innerHTML = `<div class="status-text">${model} işliyor...</div>`;
-    status.innerHTML = `<div class="status-text">${model} yanıt hazırlıyor...</div>`;
+    const loadDiv = addMsg("Düşünüyorum...", "bot");
+    const selectedModel = modelSelect.value;
 
     try {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-@@ -38,10 +37,7 @@ async function talk() {
+        const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${GK}`
+            },
             body: JSON.stringify({
-                model: model,
+                model: selectedModel,
                 messages: [
-                    { 
-                        role: "system", 
-                        content: "Sen Wind Developer tarafından geliştirilen, 10 yaşındaki entrepreneur Mirac'ın asistanı Neura Max'sin. Samimi, zeki ve profesyonel ol." 
-                    },
-                    { role: "system", content: "Sen Wind Developer tarafından geliştirilen zeki bir asistan olan Neura Max'sin." },
-                    { role: "user", content: query }
+                    { role: "system", content: "Sen Neura 'sın. Wind Developerin amiral gemisi nr 2 yi kullanıyorsun türkçede akıcı ol hata yapma verilerin doğruluğunu kontrol et." },
+                    { role: "user", content: val }
                 ]
             })
-@@ -53,28 +49,32 @@ async function talk() {
+        });
+
+        const data = await r.json();
+        loadDiv.remove();
+
         if (data.choices && data.choices[0]) {
-            addMessage(data.choices[0].message.content, "bot");
+            addMsg(data.choices[0].message.content, "bot");
         } else {
-            addMessage("Hata: " + (data.error?.message || "Groq yanıt vermedi."), "bot");
-            addMessage("Hata: " + (data.error?.message || "Bir sorun oluştu."), "bot");
+            addMsg("Bir hata oluştu sayfayı yenilemeyi deneyin.", "bot");
         }
     } catch (e) {
-        status.innerHTML = "";
-        addMessage("Bağlantı sorunu! Lütfen internetini kontrol et.", "bot");
-        addMessage("Bağlantı hatası oluştu!", "bot");
+        if (loadDiv) loadDiv.remove();
+        addMsg("Bağlantı kesildi patron!", "bot");
     }
+
     isLoading = false;
 }
 
-// Mesaj Baloncuğu Ekleme
-// Mesajı Ekrana Yazma
-function addMessage(text, side) {
-    const div = document.createElement("div");
-    div.className = `msg ${side}`;
-    div.textContent = text;
-    const chat = document.getElementById("chat");
-    chat.appendChild(div);
-    
-    // Otomatik aşağı kaydır
-    chat.scrollTop = chat.scrollHeight;
+function addMsg(txt, cls) {
+    const d = document.createElement("div");
+    d.className = `msg ${cls}`;
+    d.textContent = txt;
+    const box = document.getElementById("chat");
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+    return d;
 }
 
-// Enter Tuşu Dinleyici
-document.getElementById("q").addEventListener("keydown", (e) => {
+// Enter tuşu desteği
+document.getElementById("q").addEventListener("keypress", (e) => {
     if (e.key === "Enter") talk();
-// Olay Dinleyicileri (Buton ve Enter Tuşu)
-document.addEventListener('DOMContentLoaded', () => {
-    // Gönder butonu dinleyicisi
-    document.getElementById("send-btn").addEventListener("click", talk);
-    
-    // Enter tuşu dinleyicisi
-    document.getElementById("q").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") talk();
-    });
+});
