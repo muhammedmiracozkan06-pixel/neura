@@ -31,7 +31,7 @@ function enterApp(name, provider) {
     document.getElementById("auth-overlay").style.display = "none";
     document.getElementById("main-app").style.display = "flex";
     document.getElementById("u-tag").textContent = "| " + provider;
-    addMsg(`Selam ${name}! Wind Developer sistemine hoş geldin. Ben Neura ne sormak istersin? uyarı bazı modeller gemma gibi çalışmayabilir ve çok normaldir..`, "bot");
+    addMsg(`Selam ${name}! Ben Neura ne sormak istersin? uyarı bazı modeller gemma gibi çalışmayabilir ve çok normaldir..`, "bot");
 }
 
 /* CHAT FONKSİYONU */
@@ -61,7 +61,7 @@ async function talk() {
             body: JSON.stringify({
                 model: selectedModel,
                 messages: [
-                    { role: "system", content: "Sen Neura sın türkçede akıcı ol hata yapma verilerin doğruluğunu kontrol et.ayrıca gerektiğinde duygusal veya mutlu ol dost gibi davran bol bol duruma göre emoji kullan." },
+                    { role: "system", content: "türkçede akıcı ol hata yapma verilerin doğruluğunu kontrol et.ayrıca gerektiğinde duygusal veya mutlu ol dost gibi davran bol bol duruma göre emoji kullan." },
                     { role: "user", content: val }
                 ]
             })
@@ -77,7 +77,7 @@ async function talk() {
         }
     } catch (e) {
         if (loadDiv) loadDiv.remove();
-        addMsg("Bağlantı kesildi hatası", "bot");
+        addMsg("Bağlantı kesildi ", "bot");
     }
 
     isLoading = false;
