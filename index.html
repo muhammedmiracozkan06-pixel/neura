@@ -8,25 +8,22 @@
     <link rel="icon" type="image/png" href="logo.png.png">
     <link rel="stylesheet" href="style.css">
     
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
     <div id="auth-overlay">
         <div class="auth-card">
-            <h1 class="logo-text">Neura MAX 🤖</h1>
+            <h1 class="logo-text">Neura MAX</h1>
             
-            <div id="captcha-box" class="center-flex">
-                <div class="g-recaptcha" data-sitekey="6Lfumm0sAAAAAIzv9cJMM6Xip9W_Bwgi_aHQ2jnt" data-callback="unlock"></div>
-            </div>
-
-            <div id="login-options" class="hidden">
-                <p class="status-msg">Doğrulama başarılı! Giriş yapın. 👇</p>
+            <div id="login-options">
+                <p class="status-msg">Giris yapin</p>
                 <div id="g_id_onload" data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" data-callback="onSignIn"></div>
                 <div class="g_id_signin center-flex" data-type="standard" data-theme="filled_black" data-width="280"></div>
+                
                 <div class="separator">VEYA</div>
-                <button onclick="enterAsGuest()" class="guest-btn">Misafir Olarak Devam Et 😎</button>
+                
+                <button onclick="enterAsGuest()" class="guest-btn">Misafir Olarak Devam Et</button>
             </div>
         </div>
     </div>
@@ -39,7 +36,7 @@
             <div class="model-selector-wrapper">
                 <select id="model-select">
                     <option value="llama-3.3-70b-versatile">Llama 3.3 (Zeki)</option>
-                    <option value="llama-3.1-8b-instant" selected>Llama 3.1 (Hızlı)</option>
+                    <option value="llama-3.1-8b-instant" selected>Llama 3.1 (Hizli)</option>
                     <option value="gemma2-9b-it">Gemma 2 (Google)</option>
                 </select>
             </div>
@@ -48,7 +45,7 @@
         <div id="chat"></div>
 
         <div id="input-area">
-            <input id="q" placeholder="Herhangi bir şey sor..." autocomplete="off">
+            <input id="q" placeholder="Herhangi bir sey sor..." autocomplete="off">
             <button id="send-btn" onclick="talk()">GÖNDER</button>
         </div>
     </div>
