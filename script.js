@@ -1,51 +1,70 @@
-const GK = "gsk_7GisY7RNoHkLInxH6e10WGdyb3FYd2uX5YmRzX6n3R5pM6q8n9";
+let isLoading = false;
+const GK = "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";
 
-function enterApp() {
-    document.getElementById("auth-overlay").style.opacity = "0";
-    setTimeout(() => {
-        document.getElementById("auth-overlay").style.display = "none";
-    }, 500);
-    document.getElementById("u-tag").innerText = " | Misafir";
+/* GİRİŞ FONKSİYONLARI */
+window.onSignIn = (resp) => {
+    try {
+        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
+        enterApp(payload.given_name, "Google");
+    } catch {
+        alert("Giriş hatası!");
+    }
+};
+
+window.enterAsGuest = () => {
+    enterApp("Misafir", "Guest");
+};
+
+function enterApp(name, provider) {
+    document.getElementById("auth-overlay").style.display = "none";
+    document.getElementById("main-app").style.display = "flex";
+    document.getElementById("u-tag").textContent = "| " + provider;
+    add("Merhaba " + name + " 👋 Ben Neura MAX. Bugün senin için ne yapabilirim?", "bot");
 }
 
-async function sendMessage() {
-    const input = document.getElementById("user-input");
-    const chat = document.getElementById("chat-container");
+/* CHAT FONKSİYONU */
+async function talk() {
+    if (isLoading) return;
+    const input = document.getElementById("q");
+    const txt = input.value.trim();
     const model = document.getElementById("model-select").value;
-    const text = input.value.trim();
+    if (!txt) return;
 
-    if (!text) return;
-
-    // Kullanıcı mesajı
-    chat.innerHTML += `<div class="msg user">${text}</div>`;
+    isLoading = true;
     input.value = "";
-    chat.scrollTop = chat.scrollHeight;
+    add(txt, "user");
+    const loadingMsg = add("Düşünüyor...", "bot");
 
     try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${GK}`,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + GK
             },
             body: JSON.stringify({
                 model: model,
-                messages: [{ role: "user", content: text }]
+                messages: [{role: "user", content: txt}]
             })
         });
-
-        const data = await response.json();
-        const reply = data.choices[0].message.content;
-
-        // AI mesajı
-        chat.innerHTML += `<div class="msg ai"><b>Neura MAX:</b><br>${reply}</div>`;
-    } catch (error) {
-        chat.innerHTML += `<div class="msg ai" style="color: red;">Hata: Bağlantı kesildi.</div>`;
+        const d = await r.json();
+        loadingMsg.remove();
+        add(d.choices[0].message.content, "bot");
+    } catch {
+        loadingMsg.remove();
+        add("❗ Bağlantı hatası.", "bot");
     }
-    chat.scrollTop = chat.scrollHeight;
+    isLoading = false;
 }
 
-// Enter tuşu ile gönderme
-document.getElementById("user-input")?.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") sendMessage();
-});
+function add(t, c) {
+    const div = document.createElement("div");
+    div.className = "msg " + c;
+    div.innerHTML = t.replace(/\n/g, "<br>");
+    const box = document.getElementById("chat");
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+    return div;
+}
+
+document.getElementById("q").addEventListener("keydown", e => { if(e.key === "Enter") talk(); });
