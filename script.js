@@ -1,33 +1,28 @@
 const GK = "gsk_7GisY7RNoHkLInxH6e10WGdyb3FYd2uX5YmRzX6n3R5pM6q8n9";
 
-function closeOverlay(userName) {
-    const overlay = document.getElementById("auth-overlay");
-    if (overlay) overlay.style.display = "none";
-    document.getElementById("u-tag").innerText = ` | ${userName}`;
+function enterApp() {
+    document.getElementById("auth-overlay").style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById("auth-overlay").style.display = "none";
+    }, 500);
+    document.getElementById("u-tag").innerText = " | Misafir";
 }
 
-function onSignIn(response) {
-    const data = JSON.parse(atob(response.credential.split('.')[1]));
-    closeOverlay(data.given_name);
-}
-
-function enterAsGuest() {
-    closeOverlay("Misafir");
-}
-
-async function talk() {
-    const promptInput = document.getElementById("q");
-    const prompt = promptInput.value.trim();
+async function sendMessage() {
+    const input = document.getElementById("user-input");
+    const chat = document.getElementById("chat-container");
     const model = document.getElementById("model-select").value;
-    const chat = document.getElementById("chat");
+    const text = input.value.trim();
 
-    if (!prompt) return;
+    if (!text) return;
 
-    chat.innerHTML += `<div class="msg user"><b>Siz:</b> ${prompt}</div>`;
-    promptInput.value = "";
+    // Kullanıcı mesajı
+    chat.innerHTML += `<div class="msg user">${text}</div>`;
+    input.value = "";
+    chat.scrollTop = chat.scrollHeight;
 
     try {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${GK}`,
@@ -35,17 +30,22 @@ async function talk() {
             },
             body: JSON.stringify({
                 model: model,
-                messages: [
-                    { role: "system", content: "Yardımcı bir asistansın." },
-                    { role: "user", content: prompt }
-                ]
+                messages: [{ role: "user", content: text }]
             })
         });
-        const data = await res.json();
+
+        const data = await response.json();
         const reply = data.choices[0].message.content;
-        chat.innerHTML += `<div class="msg ai"><b>Neura MAX:</b> ${reply}</div>`;
-    } catch (e) {
-        chat.innerHTML += `<div class="msg error">Hata: Mesaj gönderilemedi.</div>`;
+
+        // AI mesajı
+        chat.innerHTML += `<div class="msg ai"><b>Neura MAX:</b><br>${reply}</div>`;
+    } catch (error) {
+        chat.innerHTML += `<div class="msg ai" style="color: red;">Hata: Bağlantı kesildi.</div>`;
     }
     chat.scrollTop = chat.scrollHeight;
 }
+
+// Enter tuşu ile gönderme
+document.getElementById("user-input")?.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendMessage();
+});
