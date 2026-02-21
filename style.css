@@ -1,16 +1,126 @@
-/* Etiketlerin ve Görsellerin Şıklığı */
-#active-tags { display: flex; gap: 8px; padding: 5px 20px; }
-
-.tag { 
-    background: #3b82f6; color: white; padding: 5px 12px; 
-    border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 8px;
+/* Giriş Alanı Konteyneri */
+#input-container {
+    position: relative;
+    background: #070709;
+    border-top: 1px solid #222;
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.tag-close { cursor: pointer; font-weight: bold; background: rgba(0,0,0,0.2); border-radius: 50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; }
-
-.image-msg { 
-    max-width: 100%; border-radius: 12px; margin-top: 10px; 
-    border: 1px solid #333; transition: transform 0.3s;
+/* Etiket Alanı (Yazı kutusunun hemen üstü) */
+#active-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 20px;
+    min-height: 30px; /* Boşken de yer tutması için veya gizlenebilir */
 }
 
-.image-msg:hover { transform: scale(1.02); }
+/* Etiket Tasarımı */
+.tag {
+    background: #3b82f6;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+}
+
+.tag-close {
+    cursor: pointer;
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+/* Giriş Alanı (Butonlar ve Input) */
+#input-area {
+    display: flex;
+    gap: 10px;
+    padding: 0 20px 10px 20px;
+    align-items: center;
+}
+
+#q {
+    flex: 1;
+    background: #16161a;
+    border: 1px solid #333;
+    color: white;
+    padding: 12px 15px;
+    border-radius: 12px;
+    outline: none;
+}
+
+/* Araçlar Butonu */
+#tools-btn {
+    background: #16161a;
+    border: 1px solid #333;
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+#tools-btn:hover {
+    border-color: #3b82f6;
+    background: #1e1e24;
+}
+
+/* Araçlar Menüsü (Yukarı doğru açılan panel) */
+#tools-menu {
+    position: absolute;
+    bottom: 85px; /* Input'un üzerinde durması için */
+    left: 20px;
+    background: #16161a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 8px;
+    width: 180px;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+#tools-menu button {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+#tools-menu button:hover {
+    background: #3b82f6;
+}
+
+/* Oluşturulan Görsel Mesajı */
+.image-msg {
+    max-width: 100%;
+    border-radius: 12px;
+    margin-top: 10px;
+    border: 1px solid #333;
+    display: block;
+}
+
+/* Gizleme Sınıfı */
+.hidden { display: none !important; }
