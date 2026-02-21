@@ -1,16 +1,7 @@
 // 🔑 GÜVENLİ VE GÜNCEL ANAHTAR
 const GK = "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";
 
-let isVerified = false;
 let isLoading = false;
-
-/* CAPTCHA DOĞRULAMA */
-window.unlock = (token) => {
-    if (!token) return;
-    isVerified = true;
-    document.getElementById("captcha-box").classList.add("hidden");
-    document.getElementById("login-options").classList.remove("hidden");
-};
 
 /* GOOGLE LOGIN SİSTEMİ */
 window.onSignIn = (resp) => {
@@ -23,7 +14,6 @@ window.onSignIn = (resp) => {
 };
 
 window.enterAsGuest = () => {
-    if (!isVerified) return alert("Devam etmek için lütfen güvenlik doğrulamasını tamamlayınız.");
     enterApp("Misafir", "Guest");
 };
 
@@ -96,7 +86,6 @@ function addMsg(txt, cls) {
     return d;
 }
 
-// Enter tuşu desteği
 document.getElementById("q").addEventListener("keypress", (e) => {
     if (e.key === "Enter") talk();
 });
