@@ -1,79 +1,56 @@
-const GK = "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";
-let isLoading = false;
+const GK = "gsk_7GisY7RNoHkLInxH6e10WGdyb3FYd2uX5YmRzX6n3R5pM6q8n9"; // Groq Key
+const GEMINI_KEY = "AIzaSyCvikyJSVr1Bv2wPWdsG5OjCtMA3RWD-eQ"; // Gemini Key
 
-/* GOOGLE LOGIN */
-window.onSignIn = (resp) => {
-    try {
-        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
-        enterApp(payload.name, "Google");
-    } catch {
-        alert("Giriş yapılamadı.");
-    }
-};
-
-/* MİSAFİR GİRİŞİ */
-window.enterAsGuest = () => {
-    enterApp("Misafir", "Guest");
-};
-
-function enterApp(name, provider) {
-    document.getElementById("auth-overlay").style.display = "none";
-    document.getElementById("main-app").style.display = "flex";
-    document.getElementById("u-tag").textContent = "| " + provider;
-    addMsg(`Selam ${name}, Neura MAX hazır. Sana nasıl yardımcı olabilirim?`, "bot");
-}
-
-/* CHAT FONKSİYONU */
 async function talk() {
-    if (isLoading) return;
-    const qInput = document.getElementById("q");
-    const val = qInput.value.trim();
-    if (!val) return;
+    const prompt = document.getElementById("q").value;
+    const model = document.getElementById("model-select").value;
+    const chat = document.getElementById("chat");
 
-    isLoading = true;
-    qInput.value = "";
-    addMsg(val, "user");
+    if (!prompt) return;
 
-    const loadDiv = addMsg("Yanıt oluşturuluyor...", "bot");
+    chat.innerHTML += `<div class="msg user"><b>Siz:</b> ${prompt}</div>`;
+    document.getElementById("q").value = "";
 
     try {
-        const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${GK}`
-            },
-            body: JSON.stringify({
-                model: document.getElementById("model-select").value,
-                messages: [
-                    { role: "system", content: "Sen Neura MAX'sin. Wind Developer tarafından geliştirilmiş profesyonel bir yapay zeka asistanısın." },
-                    { role: "user", content: val }
-                ]
-            })
-        });
-
-        const data = await r.json();
-        loadDiv.remove();
-        if (data.choices && data.choices[0]) {
-            addMsg(data.choices[0].message.content, "bot");
+        let response;
+        
+        // Eğer seçilen model Gemma ise Google Gemini API'sini kullan
+        if (model.includes("gemma")) {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-2-9b-it:generateContent?key=${GEMINI_KEY}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+            const data = await response.json();
+            const reply = data.candidates[0].content.parts[0].text;
+            chat.innerHTML += `<div class="msg ai"><b>Neura MAX:</b> ${reply}</div>`;
+        } 
+        // Değilse (Llama ise) Groq API'sini kullan
+        else {
+            response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${GK}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [
+                        // Buradaki sistem mesajını sadeleştirdik, artık kafasına göre konuşmayacak
+                        { role: "system", content: "Yardımcı bir asistansın." },
+                        { role: "user", content: prompt }
+                    ]
+                })
+            });
+            const data = await response.json();
+            const reply = data.choices[0].message.content;
+            chat.innerHTML += `<div class="msg ai"><b>Neura MAX:</b> ${reply}</div>`;
         }
+
     } catch (e) {
-        if (loadDiv) loadDiv.remove();
-        addMsg("Bağlantı hatası.", "bot");
+        chat.innerHTML += `<div class="msg error">Hata: Bağlantı kurulamadı.</div>`;
     }
-    isLoading = false;
+    chat.scrollTop = chat.scrollHeight;
 }
-
-function addMsg(txt, cls) {
-    const d = document.createElement("div");
-    d.className = `msg ${cls}`;
-    d.textContent = txt;
-    const box = document.getElementById("chat");
-    box.appendChild(d);
-    box.scrollTop = box.scrollHeight;
-    return d;
-}
-
-document.getElementById("q").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") talk();
-});
