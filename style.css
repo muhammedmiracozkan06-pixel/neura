@@ -1,1 +1,53 @@
+body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #0f0f0f; color: white;
+}
 
+/* Giriş Ekranı */
+#auth-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; transition: 0.5s;
+}
+
+.auth-card {
+    background: #111; padding: 40px; border-radius: 20px;
+    border: 1px solid #333; text-align: center;
+}
+
+/* Ana Uygulama */
+#main-app { display: flex; flex-direction: column; height: 100vh; }
+
+header {
+    padding: 15px 20px; background: #111;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #333;
+}
+
+#chat-container {
+    flex: 1; overflow-y: auto; padding: 20px;
+    display: flex; flex-direction: column; gap: 15px;
+}
+
+.input-area {
+    padding: 20px; background: #111; display: flex; gap: 10px;
+}
+
+input {
+    flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #333;
+    background: #1a1a1a; color: white; outline: none;
+}
+
+button {
+    padding: 10px 20px; background: #007bff; color: white;
+    border: none; border-radius: 8px; cursor: pointer; transition: 0.3s;
+}
+
+button:hover { background: #0056b3; }
+
+/* Mesaj Balonları */
+.msg { padding: 10px 15px; border-radius: 12px; max-width: 80%; }
+.user { align-self: flex-end; background: #007bff; }
+.ai { align-self: flex-start; background: #222; border: 1px solid #333; }
