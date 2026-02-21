@@ -1,18 +1,17 @@
-// 🔑 GÜVENLİ VE GÜNCEL ANAHTAR
 const GK = "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";
-
 let isLoading = false;
 
-/* GOOGLE LOGIN SİSTEMİ */
+/* GOOGLE LOGIN */
 window.onSignIn = (resp) => {
     try {
         const payload = JSON.parse(atob(resp.credential.split('.')[1]));
         enterApp(payload.name, "Google");
     } catch {
-        alert("Kimlik doğrulama işlemi sırasında bir hata oluştu.");
+        alert("Giriş yapılamadı.");
     }
 };
 
+/* MİSAFİR GİRİŞİ */
 window.enterAsGuest = () => {
     enterApp("Misafir", "Guest");
 };
@@ -21,17 +20,14 @@ function enterApp(name, provider) {
     document.getElementById("auth-overlay").style.display = "none";
     document.getElementById("main-app").style.display = "flex";
     document.getElementById("u-tag").textContent = "| " + provider;
-    addMsg(`Sayın ${name}, Neura MAX sistemine hoş geldiniz. Size nasıl yardımcı olabilirim?`, "bot");
+    addMsg(`Selam ${name}, Neura MAX hazır. Sana nasıl yardımcı olabilirim?`, "bot");
 }
 
 /* CHAT FONKSİYONU */
 async function talk() {
     if (isLoading) return;
-
     const qInput = document.getElementById("q");
-    const modelSelect = document.getElementById("model-select");
     const val = qInput.value.trim();
-
     if (!val) return;
 
     isLoading = true;
@@ -39,7 +35,6 @@ async function talk() {
     addMsg(val, "user");
 
     const loadDiv = addMsg("Yanıt oluşturuluyor...", "bot");
-    const selectedModel = modelSelect.value;
 
     try {
         const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -49,12 +44,9 @@ async function talk() {
                 "Authorization": `Bearer ${GK}`
             },
             body: JSON.stringify({
-                model: selectedModel,
+                model: document.getElementById("model-select").value,
                 messages: [
-                    { 
-                        role: "system", 
-                        content: "Sen Neura MAX'sin. Wind Developer tarafından geliştirilmiş profesyonel bir yapay zeka asistanısın. Yanıtlarında akıcı, bilgilendirici ve kurumsal bir dil kullan. Gerektiğinde profesyonelliği bozmadan uygun emojilerle yanıtlarını zenginleştir." 
-                    },
+                    { role: "system", content: "Sen Neura MAX'sin. Wind Developer tarafından geliştirilmiş profesyonel bir yapay zeka asistanısın." },
                     { role: "user", content: val }
                 ]
             })
@@ -62,17 +54,13 @@ async function talk() {
 
         const data = await r.json();
         loadDiv.remove();
-
         if (data.choices && data.choices[0]) {
             addMsg(data.choices[0].message.content, "bot");
-        } else {
-            addMsg("Sistem şu anda yanıt veremiyor. Lütfen kısa süre sonra tekrar deneyiniz.", "bot");
         }
     } catch (e) {
         if (loadDiv) loadDiv.remove();
-        addMsg("Bağlantı hatası: Sunucu ile iletişim kurulamadı.", "bot");
+        addMsg("Bağlantı hatası.", "bot");
     }
-
     isLoading = false;
 }
 
