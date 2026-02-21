@@ -15,15 +15,20 @@
     <div id="auth-overlay">
         <div class="auth-card">
             <h1 class="logo-text">Neura MAX</h1>
+            <p style="color:#666; margin-bottom:30px;">Wind Developer</p>
             
             <div id="login-options">
-                <p class="status-msg">Giris yapin</p>
-                <div id="g_id_onload" data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" data-callback="onSignIn"></div>
-                <div class="g_id_signin center-flex" data-type="standard" data-theme="filled_black" data-width="280"></div>
+                <div id="google-container" style="display:flex; justify-content:center; margin-bottom:15px;">
+                    <div id="g_id_onload" 
+                         data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" 
+                         data-callback="onSignIn">
+                    </div>
+                    <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-width="280"></div>
+                </div>
                 
                 <div class="separator">VEYA</div>
                 
-                <button onclick="enterAsGuest()" class="guest-btn">Misafir Olarak Devam Et</button>
+                <button id="guest-btn" onclick="enterAsGuest()" class="guest-btn">Misafir Olarak Devam Et</button>
             </div>
         </div>
     </div>
@@ -36,7 +41,7 @@
             <div class="model-selector-wrapper">
                 <select id="model-select">
                     <option value="llama-3.3-70b-versatile">Llama 3.3 (Zeki)</option>
-                    <option value="llama-3.1-8b-instant" selected>Llama 3.1 (Hizli)</option>
+                    <option value="llama-3.1-8b-instant" selected>Llama 3.1 (Hızlı)</option>
                     <option value="gemma2-9b-it">Gemma 2 (Google)</option>
                 </select>
             </div>
@@ -45,7 +50,7 @@
         <div id="chat"></div>
 
         <div id="input-area">
-            <input id="q" placeholder="Herhangi bir sey sor..." autocomplete="off">
+            <input id="q" placeholder="Bir şeyler yazın..." autocomplete="off">
             <button id="send-btn" onclick="talk()">GÖNDER</button>
         </div>
     </div>
