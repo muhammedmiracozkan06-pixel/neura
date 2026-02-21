@@ -1,47 +1,55 @@
-const GK = "gsk_7GisY7RNoHkLInxH6e10WGdyb3FYd2uX5YmRzX6n3R5pM6q8n9"; // Groq Key
-const GEMINI_KEY = "AIzaSyCvikyJSVr1Bv2wPWdsG5OjCtMA3RWD-eQ"; // Gemini Key
+const GK = "gsk_7GisY7RNoHkLInxH6e10WGdyb3FYd2uX5YmRzX6n3R5pM6q8n9";
+const GEMINI_KEY = "AIzaSyCvikyJSVr1Bv2wPWdsG5OjCtMA3RWD-eQ";
 
-// --- GİRİŞ SİSTEMİ ---
+// Siyah ekranı kaldıran ana fonksiyon
+function closeOverlay(userName) {
+    const overlay = document.getElementById("auth-overlay");
+    const uTag = document.getElementById("u-tag");
+    if (overlay) overlay.style.display = "none";
+    if (uTag) uTag.innerText = ` | ${userName}`;
+}
+
+// Google Giriş Fonksiyonu
 function onSignIn(response) {
-    const data = JSON.parse(atob(response.credential.split('.')[1]));
-    document.getElementById("u-tag").innerText = ` | ${data.given_name}`;
-    document.getElementById("auth-overlay").style.display = "none";
+    try {
+        const data = JSON.parse(atob(response.credential.split('.')[1]));
+        closeOverlay(data.given_name);
+    } catch (e) {
+        console.error("Giriş hatası:", e);
+        closeOverlay("Kullanıcı");
+    }
 }
 
+// Misafir Giriş Fonksiyonu
 function enterAsGuest() {
-    document.getElementById("u-tag").innerText = " | Misafir";
-    document.getElementById("auth-overlay").style.display = "none";
+    closeOverlay("Misafir");
 }
 
-// --- KONUŞMA SİSTEMİ ---
+// Konuşma Fonksiyonu
 async function talk() {
-    const prompt = document.getElementById("q").value;
+    const promptInput = document.getElementById("q");
+    const prompt = promptInput.value.trim();
     const model = document.getElementById("model-select").value;
     const chat = document.getElementById("chat");
 
     if (!prompt) return;
 
-    // Kullanıcı mesajını ekrana bas
     chat.innerHTML += `<div class="msg user"><b>Siz:</b> ${prompt}</div>`;
-    document.getElementById("q").value = "";
+    promptInput.value = "";
 
     try {
         let reply = "";
 
         if (model.includes("gemma")) {
-            // Google Gemini API İsteği
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-2-9b-it:generateContent?key=${GEMINI_KEY}`, {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-2-9b-it:generateContent?key=${GEMINI_KEY}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
-            const data = await response.json();
+            const data = await res.json();
             reply = data.candidates[0].content.parts[0].text;
         } else {
-            // Groq (Llama) API İsteği
-            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${GK}`,
@@ -49,21 +57,17 @@ async function talk() {
                 },
                 body: JSON.stringify({
                     model: model,
-                    messages: [
-                        { role: "system", content: "Yardımcı bir asistansın." },
-                        { role: "user", content: prompt }
-                    ]
+                    messages: [{ role: "system", content: "Yardımcı bir asistansın." }, { role: "user", content: prompt }]
                 })
             });
-            const data = await response.json();
+            const data = await res.json();
             reply = data.choices[0].message.content;
         }
 
         chat.innerHTML += `<div class="msg ai"><b>Neura MAX:</b> ${reply}</div>`;
-
     } catch (e) {
+        chat.innerHTML += `<div class="msg error">Hata: Mesaj gönderilemedi.</div>`;
         console.error(e);
-        chat.innerHTML += `<div class="msg error">Hata: Bağlantı kurulamadı veya API anahtarı hatalı.</div>`;
     }
     chat.scrollTop = chat.scrollHeight;
 }
