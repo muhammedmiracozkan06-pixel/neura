@@ -39,7 +39,7 @@ function enterApp(name, photo, provider) {
             pfpImg.classList.remove("hidden");
         }
     }
-    addMsg("Neura MAX sistemine giriş yapıldı. Hoş geldin " + name + "!", "bot");
+    addMsg("Neura a giriş yapıldı. Hoş geldin " + name + "!", "bot");
 }
 
 // 2. Araçlar ve Etiket Yönetimi
@@ -78,7 +78,7 @@ function addImageTag() {
     tag.innerHTML = `🖼️ Görsel Oluştur <span class="tag-close" onclick="removeImageTag()">×</span>`;
     tagsArea.appendChild(tag);
     isImageMode = true;
-    document.getElementById("q").placeholder = "Nasıl bir görsel çizelim patron?";
+    document.getElementById("q").placeholder = "Görselinizi açıklayın...";
     toggleTools();
 }
 
@@ -117,7 +117,7 @@ async function talk() {
             if (!resp.ok) throw new Error();
             const blob = await resp.blob();
             loadDiv.remove();
-            const audioBox = addMsg("İşte müziğin patron: ", "bot");
+            const audioBox = addMsg("İşte müziğin  ", "bot");
             const audio = document.createElement("audio");
             audio.src = URL.createObjectURL(blob);
             audio.controls = true;
@@ -151,7 +151,7 @@ async function talk() {
                 body: JSON.stringify({
                     model: model,
                     messages: [
-                        { role: "system", content: "Sen Mirac tarafından geliştirilen Neura MAX isimli, nazik ve zeki bir asistansın. Wind Developer ürünlerinden birisin." },
+                        { role: "system", content: "nazik ve zeki bir asistansın.gerektiğinde duygusal ol." },
                         { role: "user", content: val }
                     ]
                 })
