@@ -5,30 +5,43 @@ let isLoading = false;
 window.onSignIn = (resp) => {
     try {
         const payload = JSON.parse(atob(resp.credential.split('.')[1]));
-        const name = payload.given_name || payload.name || "Kullanıcı";
-        enterApp(name, "Google");
+        const name = payload.name || "Kullanıcı";
+        const photo = payload.picture || "";
+        enterApp(name, photo, "Google");
     } catch (e) {
-        console.error("Giriş hatası:", e);
-        enterApp("Kullanıcı", "Google");
+        enterApp("Kullanıcı", "", "Google");
     }
 };
 
 // 2. Misafir Giriş Yanıtı
 window.enterAsGuest = () => {
-    enterApp("Misafir", "Ziyaretçi");
+    enterApp("guest", "", "Guest");
 };
 
-// 3. Ortak Uygulama Başlatma Fonksiyonu
-function enterApp(name, provider) {
+// 3. Uygulamaya Giriş
+function enterApp(name, photo, provider) {
     const overlay = document.getElementById("auth-overlay");
     const app = document.getElementById("main-app");
     const uTag = document.getElementById("u-tag");
+    const pfpImg = document.getElementById("user-pfp");
 
     if (overlay) overlay.style.display = "none";
     if (app) app.style.display = "flex";
-    if (uTag) uTag.textContent = "| " + provider;
+
+    if (provider === "Guest") {
+        uTag.textContent = name;
+        uTag.className = "guest-text";
+        pfpImg.classList.add("hidden");
+    } else {
+        uTag.textContent = name;
+        uTag.className = "";
+        if (photo) {
+            pfpImg.src = photo;
+            pfpImg.classList.remove("hidden");
+        }
+    }
     
-    addMsg("Hoş geldin " + name + "! Ben Neura MAX, bugün sana nasıl yardımcı olabilirim?", "bot");
+    addMsg("Sisteme giriş yapıldı. Hoş geldin " + name + "!", "bot");
 }
 
 // 4. Sohbet Fonksiyonu
@@ -67,11 +80,11 @@ async function talk() {
         if (data.choices && data.choices[0]) {
             addMsg(data.choices[0].message.content, "bot");
         } else {
-            addMsg("Üzgünüm, şu an yanıt veremiyorum.", "bot");
+            addMsg("Hata: Yanıt alınamadı.", "bot");
         }
     } catch (e) {
         if (loadDiv) loadDiv.remove();
-        addMsg("Bağlantı hatası oluştu. Lütfen tekrar deneyin.", "bot");
+        addMsg("Bağlantı hatası!", "bot");
     }
     isLoading = false;
 }
