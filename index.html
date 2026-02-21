@@ -4,33 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neura MAX | Wind Developer</title>
+    
+    <link rel="icon" type="image/png" href="logo.png.png">
     <link rel="stylesheet" href="style.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
     <div id="auth-overlay">
         <div class="auth-card">
-            <h1>Neura MAX</h1>
-            <p>Wind Developer ürünüdür</p>
-            <button onclick="enterApp()" class="guest-btn">Sohbete Başla</button>
+            <h1 style="color:var(--primary); margin-bottom:10px;">Neura MAX</h1>
+            <p style="color:#666; margin-bottom:30px;">Wind Developer ürünüdür</p>
+
+            <div id="login-options">
+                <div style="display:flex; justify-content:center; margin-bottom:10px;">
+                    <div id="g_id_onload" 
+                         data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" 
+                         data-callback="onSignIn">
+                    </div>
+                    <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-width="280"></div>
+                </div>
+
+                <div style="margin:15px 0; color:#444; font-size:12px;">VEYA</div>
+
+                <button onclick="enterAsGuest()" 
+                        style="background:transparent; border:1px solid #444; width:280px; padding:10px; color:#aaa; border-radius:12px; cursor:pointer;">
+                    Misafir Olarak Devam Et
+                </button>
+            </div>
         </div>
     </div>
 
     <div id="main-app">
-        <header>
-            <div class="brand">NEURA MAX <span id="u-tag"></span></div>
+        <div id="header">
+            <div style="font-weight:bold; color:var(--primary);">
+                NEURA MAX <span id="u-tag" style="color:#555; font-size:11px;"></span>
+            </div>
             <select id="model-select">
                 <option value="llama-3.3-70b-versatile">Llama 3.3 (Zeki)</option>
                 <option value="llama-3.1-8b-instant" selected>Llama 3.1 (Hızlı)</option>
                 <option value="llama-3.2-3b-preview">Llama 3.2 (Yeni)</option>
             </select>
-        </header>
+        </div>
 
-        <div id="chat-container"></div>
+        <div id="chat"></div>
 
-        <div class="input-area">
-            <input id="user-input" placeholder="Bir şey sor..." autocomplete="off">
-            <button onclick="sendMessage()">GÖNDER</button>
+        <div id="input-area">
+            <input id="q" placeholder="Herhangi bir şey sor..." autocomplete="off">
+            <button onclick="talk()">GÖNDER</button>
         </div>
     </div>
 
