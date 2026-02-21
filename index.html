@@ -54,13 +54,18 @@
         <div id="chat"></div>
 
         <div id="input-container">
-            <div id="active-tags"></div> <div id="input-area">
+            <div id="active-tags"></div> 
+
+            <div id="input-area">
                 <button id="tools-btn" onclick="toggleTools()">🛠️</button>
+                
                 <input id="q" placeholder="Bir şeyler yazın..." autocomplete="off">
                 <button id="send-btn" onclick="talk()">GÖNDER</button>
             </div>
+
             <div id="tools-menu" class="hidden">
                 <button onclick="addMusicTag()">🎵 Müzik Oluştur</button>
+                <button onclick="addImageTag()">🖼️ Görsel Oluştur</button>
             </div>
         </div>
     </div>
