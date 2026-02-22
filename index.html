@@ -3,70 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neura MAX | Wind Developer</title>
-    
-    <link rel="icon" type="image/png" href="logo.png.png">
-    <link rel="stylesheet" href="style.css">
-    
+    <title>Neura MAX-1 | AI Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="auth-overlay">
+    <div id="auth-overlay" class="overlay">
         <div class="auth-card">
-            <h1 class="logo-text">Neura MAX</h1>
-            <p style="color:#666; margin-bottom:30px;">Wind Developer</p>
+            <h1>NEURA<span>MAX-1</span></h1>
+            <p>Geleceğin asistanına hoş geldin.</p>
             
-            <div id="login-options">
-                <div id="google-container" style="display:flex; justify-content:center; margin-bottom:15px;">
-                    <div id="g_id_onload" 
-                         data-client_id="897971776455-eh0lpcnpcecifps2kga7lqrh2r6o8ole.apps.googleusercontent.com" 
-                         data-callback="onSignIn">
-                    </div>
-                    <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-width="280"></div>
-                </div>
-                
-                <div class="separator">VEYA</div>
-                
-                <button id="guest-btn" onclick="enterAsGuest()" class="guest-btn">Misafir Olarak Devam Et</button>
+            <div id="g_id_onload"
+                data-client_id="814782030062-8v259id86f9f0j26f8d035idvms.apps.googleusercontent.com"
+                data-callback="onSignIn">
             </div>
+            <div class="g_id_signin" data-type="standard"></div>
+
+            <div class="divider">veya</div>
+
+            <button onclick="enterAsGuest()" class="guest-btn">Misafir Olarak Giriş Yap</button>
         </div>
     </div>
 
-    <div id="main-app">
-        <header id="header">
-            <div class="brand-area">
-                <span class="logo-name">NEURA MAX</span>
-                <div id="user-info-display">
-                    <img id="user-pfp" class="hidden" src="" alt="profil">
-                    <span id="u-tag"></span>
-                </div>
+    <div id="main-app" class="app-container" style="display: none;">
+        <aside class="sidebar">
+            <div class="logo">NEURA</div>
+            <div class="user-info">
+                <img id="user-pfp" src="" alt="" style="display:none;">
+                <span id="u-tag">Kullanıcı</span>
             </div>
-            <div class="model-selector-wrapper">
+            
+            <div class="model-section">
+                <label>Model Seçimi</label>
                 <select id="model-select">
-                    <option value="neura-max-1" selected>Neura MAX-1 (Özel Beyin)</option>
-                    <option value="llama-3.3-70b-versatile">Llama 3.3 (Zeki)</option>
-                    <option value="llama-3.1-8b-instant">Llama 3.1 (Hızlı)</option>
+                    <option value="llama-3.3-70b-versatile">Llama 3.3 (Hızlı & Zeki)</option>
+                    <option value="gemma2-9b-it">Gemma 2 (Google Altyapısı)</option>
+                    <option value="mixtral-8x7b-32768">Mixtral (Yaratıcı)</option>
                 </select>
             </div>
-        </header>
 
-        <div id="chat"></div>
+            <nav class="tools">
+                <button onclick="addMusicTag()" class="tool-btn">🎵 Müzik Üret</button>
+                <button onclick="addImageTag()" class="tool-btn">🖼️ Görsel Üret</button>
+            </nav>
+        </aside>
 
-        <div id="input-container">
-            <div id="active-tags"></div> 
-            
-            <div id="input-area">
-                <button id="tools-btn" onclick="toggleTools()">🛠️</button>
-                <input id="q" placeholder="Bir şeyler yazın..." autocomplete="off">
-                <button id="send-btn" onclick="talk()">GÖNDER</button>
+        <main class="chat-wrapper">
+            <div id="chat" class="chat-box">
+                </div>
+
+            <div class="input-area">
+                <div id="active-tags" class="tags-container"></div>
+                <div class="input-group">
+                    <input type="text" id="q" placeholder="Bir şeyler yazın..." autocomplete="off">
+                    <button onclick="talk()" id="send-btn">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+                    </button>
+                </div>
             </div>
-
-            <div id="tools-menu" class="hidden">
-                <button onclick="addMusicTag()">🎵 Müzik Oluştur</button>
-                <button onclick="addImageTag()">🖼️ Görsel Oluştur</button>
-            </div>
-        </div>
+        </main>
     </div>
 
     <script src="script.js"></script>
