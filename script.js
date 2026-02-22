@@ -3,217 +3,45 @@ const GK = "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";
 const HF_KEY = "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"; 
 const MY_MODEL_ID = "muhamsdadefwf/Neura_MAX_1_Final";
 
-let isLoading = false;
-let isMusicMode = false;
-let isImageMode = false;
+// CLOUDFLARE AYARLARIN
+const CF_ACCOUNT_ID = "922158fb1068d0a8d0e20a93c3bb4492";
+const CF_API_TOKEN = "ga9hqQPaU9uo-Xf-rHZc5VVggsY_mqynoyCWtdyI"; // Senin aldığın token
 
-// --- 1. GİRİŞ VE KİMLİK DOĞRULAMA ---
-window.onSignIn = (resp) => {
+// --- talk() FONKSİYONU İÇİNDEKİ NEURA KISMI ---
+// talk fonksiyonu içindeki 'else' bloğunun içindeki 'if (modelChoice === "neura-max-1")' bölümünü bununla değiştir:
+
+if (modelChoice === "neura-max-1") {
     try {
-        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
-        enterApp(payload.name, payload.picture, "Google");
-    } catch (e) {
-        enterApp("Kullanıcı", "", "Google");
-    }
-};
-
-window.enterAsGuest = () => {
-    enterApp("Misafir", "", "Guest");
-};
-
-function enterApp(name, photo, provider) {
-    const overlay = document.getElementById("auth-overlay");
-    const app = document.getElementById("main-app");
-    const uTag = document.getElementById("u-tag");
-    const pfpImg = document.getElementById("user-pfp");
-
-    if (overlay) overlay.style.display = "none";
-    if (app) app.style.display = "flex";
-
-    uTag.textContent = name;
-    
-    if (provider === "Guest") {
-        uTag.className = "guest-text";
-        if (pfpImg) pfpImg.style.display = "none";
-    } else {
-        uTag.className = "";
-        if (photo && pfpImg) {
-            pfpImg.src = photo;
-            pfpImg.style.display = "block";
-            pfpImg.classList.remove("hidden");
-        }
-    }
-    addMsg("Neura'ya giriş yapıldı. Hoş geldin " + name + "!", "bot");
-}
-
-// --- 2. ARAÇLAR VE ETİKET YÖNETİMİ ---
-function toggleTools() {
-    document.getElementById("tools-menu").classList.toggle("hidden");
-}
-
-function addMusicTag() {
-    if (isMusicMode) return;
-    if (isImageMode) removeImageTag();
-    const tagsArea = document.getElementById("active-tags");
-    const tag = document.createElement("div");
-    tag.className = "tag";
-    tag.id = "music-tag";
-    tag.innerHTML = `🎵 Müzik Oluştur <span class="tag-close" onclick="removeMusicTag()">×</span>`;
-    tagsArea.appendChild(tag);
-    isMusicMode = true;
-    document.getElementById("q").placeholder = "Nasıl bir müzik istersin?";
-    toggleTools();
-}
-
-function removeMusicTag() {
-    const tag = document.getElementById("music-tag");
-    if (tag) tag.remove();
-    isMusicMode = false;
-    document.getElementById("q").placeholder = "Bir şeyler yazın...";
-}
-
-function addImageTag() {
-    if (isImageMode) return;
-    if (isMusicMode) removeMusicTag();
-    const tagsArea = document.getElementById("active-tags");
-    const tag = document.createElement("div");
-    tag.className = "tag";
-    tag.id = "image-tag";
-    tag.innerHTML = `🖼️ Görsel Oluştur <span class="tag-close" onclick="removeImageTag()">×</span>`;
-    tagsArea.appendChild(tag);
-    isImageMode = true;
-    document.getElementById("q").placeholder = "Görselinizi açıklayın...";
-    toggleTools();
-}
-
-function removeImageTag() {
-    const tag = document.getElementById("image-tag");
-    if (tag) tag.remove();
-    isImageMode = false;
-    document.getElementById("q").placeholder = "Bir şeyler yazın...";
-}
-
-// --- 3. ANA ZEKA FONKSİYONU ---
-async function talk() {
-    if (isLoading) return;
-    const qInput = document.getElementById("q");
-    const val = qInput.value.trim();
-    const modelChoice = document.getElementById("model-select").value;
-
-    if (!val) return;
-
-    isLoading = true;
-    qInput.value = "";
-    addMsg(val, "user");
-
-    let status = "Düşünüyor...";
-    if (isMusicMode) status = "🎵 Müzik besteleniyor...";
-    if (isImageMode) status = "🖼️ Görsel çiziliyor...";
-    const loadDiv = addMsg(status, "bot");
-
-    try {
-        if (isMusicMode) {
-            const resp = await fetch("https://api-inference.huggingface.co/models/facebook/musicgen-small", {
-                headers: { Authorization: `Bearer ${HF_KEY}` },
+        const r = await fetch(
+            `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@hf/muhamsdadefwf/Neura_MAX_1_Final`,
+            {
                 method: "POST",
-                body: JSON.stringify({ inputs: val })
-            });
-            if (!resp.ok) throw new Error();
-            const blob = await resp.blob();
-            loadDiv.remove();
-            const audioBox = addMsg("İşte müziğin: ", "bot");
-            const audio = document.createElement("audio");
-            audio.src = URL.createObjectURL(blob);
-            audio.controls = true;
-            audio.style.width = "100%";
-            audio.style.marginTop = "10px";
-            audioBox.appendChild(audio);
-            removeMusicTag();
-        } 
-        else if (isImageMode) {
-            const resp = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
-                headers: { Authorization: `Bearer ${HF_KEY}` },
-                method: "POST",
-                body: JSON.stringify({ inputs: val })
-            });
-            if (!resp.ok) throw new Error();
-            const blob = await resp.blob();
-            loadDiv.remove();
-            const imgBox = addMsg("İşte senin için çizdiğim görsel:", "bot");
-            const img = document.createElement("img");
-            img.src = URL.createObjectURL(blob);
-            img.className = "image-msg";
-            img.style.maxWidth = "100%";
-            img.style.borderRadius = "10px";
-            imgBox.appendChild(img);
-            removeImageTag();
-        } 
-        else {
-            if (modelChoice === "neura-max-1") {
-                // --- BURASI MODELİ UYANDIRAN KRİTİK BÖLÜM ---
-                const r = await fetch(`https://api-inference.huggingface.co/models/${MY_MODEL_ID}`, {
-                    method: "POST",
-                    headers: { 
-                        "Authorization": `Bearer ${HF_KEY}`, 
-                        "Content-Type": "application/json" 
-                    },
-                    body: JSON.stringify({ 
-                        inputs: val, 
-                        parameters: { 
-                            max_new_tokens: 500, 
-                            return_full_text: false 
-                        },
-                        options: {
-                            wait_for_model: true // MODELİ UYKUDAN ZORLA UYANDIRIR VE BEKLER
-                        }
-                    })
-                });
-                const data = await r.json();
-                loadDiv.remove();
-                
-                let reply = "";
-                if (Array.isArray(data)) reply = data[0].generated_text;
-                else if (data.generated_text) reply = data.generated_text;
-                else if (data.error) reply = "Model şu an yükleniyor (3GB), lütfen 30 saniye sonra tekrar deneyin.";
-                else reply = "Beklenmedik bir yanıt alındı.";
-
-                addMsg(reply, "bot");
-            } else {
-                const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GK}` },
-                    body: JSON.stringify({
-                        model: modelChoice,
-                        messages: [
-                            { role: "system", content: "Sen Neura MAX'sın. Nazik, zeki ve yardımcı bir asistansın." },
-                            { role: "user", content: val }
-                        ]
-                    })
-                });
-                const data = await r.json();
-                loadDiv.remove();
-                addMsg(data.choices[0].message.content, "bot");
+                headers: {
+                    "Authorization": `Bearer ${CF_API_TOKEN}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    messages: [
+                        { role: "system", content: "Sen  (Wind Developer) tarafından eğitilen Neura MAX-1'sin. Zeki ve nazik bir asistansın." },
+                        { role: "user", content: val }
+                    ]
+                })
             }
+        );
+
+        const data = await r.json();
+        loadDiv.remove();
+
+        if (data.success) {
+            // Cloudflare yanıtı 'result.response' içinde verir
+            addMsg(data.result.response, "bot");
+        } else {
+            console.error("Cloudflare Hatası:", data);
+            addMsg("Cloudflare: Model bulunamadı veya erişim reddedildi. Lütfen Hugging Face modelinin 'Public' olduğundan emin ol.", "bot");
         }
     } catch (e) {
-        if (loadDiv) loadDiv.innerHTML = "❌ Model uyanırken bir hata oluştu. Tekrar deneyin.";
+        console.error("Bağlantı Hatası:", e);
+        if (loadDiv) loadDiv.remove();
+        addMsg("❌ Cloudflare sunucusuna bağlanılamadı.", "bot");
     }
-    isLoading = false;
 }
-
-// --- 4. YARDIMCI FONKSİYONLAR ---
-function addMsg(txt, cls) {
-    const d = document.createElement("div");
-    d.className = `msg ${cls}`;
-    d.innerHTML = txt.replace(/\n/g, "<br>");
-    const box = document.getElementById("chat");
-    if (box) {
-        box.appendChild(d);
-        box.scrollTop = box.scrollHeight;
-    }
-    return d;
-}
-
-document.getElementById("q").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") talk();
-});
