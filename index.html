@@ -12,18 +12,20 @@
     <div id="auth-overlay" class="overlay">
         <div class="auth-card">
             <h1>NEURA<span>MAX-1</span></h1>
-            <div id="g_id_onload" data-client_id="SENIN_CLIENT_ID_BURAYA" data-callback="onSignIn"></div>
+            <p>Yapay zekanın yeni boyutu.</p>
+            <div id="g_id_onload" data-client_id="814782030062-8v259id86f9f0j26f8d035idvms.apps.googleusercontent.com" data-callback="onSignIn"></div>
             <div class="g_id_signin" data-type="standard"></div>
-            <button onclick="enterAsGuest()" class="guest-btn">Misafir Girişi</button>
+            <div class="divider">veya</div>
+            <button onclick="enterAsGuest()" class="guest-btn">Misafir Olarak Giriş Yap</button>
         </div>
     </div>
 
     <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
+        <div id="sidebar-user-info" class="sidebar-header" style="display: none;">
             <img id="user-pfp" src="" alt="P">
             <div class="user-details">
-                <span id="u-tag">Ad Soyad</span>
-                <small id="u-mail">mail@adres.com</small>
+                <span id="u-tag"></span>
+                <small id="u-mail"></small>
             </div>
         </div>
         <div class="sidebar-content">
@@ -31,7 +33,7 @@
         </div>
     </div>
 
-    <div id="main-app" class="app-container">
+    <div id="main-app" class="app-container" style="display: none;">
         <header>
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
             <div class="logo">NEURA</div>
@@ -41,16 +43,16 @@
 
         <footer>
             <div class="model-selectors">
-                <button onclick="setModel('Hızlı')" id="btn-hizli">Hızlı</button>
-                <button onclick="setModel('Düşünen')" id="btn-dusunen">Düşünen</button>
-                <button onclick="setModel('Pro')" id="btn-pro">Pro</button>
-                <button onclick="setModel('Otomatik')" id="btn-oto" class="active">Otomatik</button>
+                <button onclick="setModel('hizli')" id="btn-hizli">Hızlı</button>
+                <button onclick="setModel('dusunen')" id="btn-dusunen">Düşünen</button>
+                <button onclick="setModel('pro')" id="btn-pro">Pro</button>
+                <button onclick="setModel('oto')" id="btn-oto" class="active">Otomatik</button>
             </div>
             
             <div class="input-wrapper">
                 <div id="preview-area"></div>
                 <div class="input-group">
-                    <textarea id="q" placeholder="Mesajınızı yazın..." oninput="autoGrow(this)"></textarea>
+                    <textarea id="q" placeholder="Mesajınızı yazın..." oninput="autoGrow(this)" rows="1"></textarea>
                     <div class="input-actions">
                         <label for="img-upload" class="plus-btn">+</label>
                         <input type="file" id="img-upload" multiple accept="image/*" style="display:none" onchange="handleFiles(this)">
