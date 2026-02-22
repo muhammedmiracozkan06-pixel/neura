@@ -1,4 +1,4 @@
-const GK = "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";
+const GK = "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";
 let currentModel = "oto";
 let selectedFiles = [];
 
