@@ -1,5 +1,5 @@
-cconst GK = "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";
-// Kendi oluşturduğun yeni anahtarı buraya ekledim patron!
+// --- ANAHTARLAR VE AYARLAR ---
+const GK = "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";
 const HF_KEY = "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"; 
 const MY_MODEL_ID = "muhamsdadefwf/Neura_MAX_1_Final";
 
@@ -7,7 +7,7 @@ let isLoading = false;
 let isMusicMode = false;
 let isImageMode = false;
 
-// 1. Giriş Yanıtları (Aynı kaldı)
+// --- 1. GİRİŞ VE KİMLİK DOĞRULAMA (TAMİR EDİLDİ) ---
 window.onSignIn = (resp) => {
     try {
         const payload = JSON.parse(atob(resp.credential.split('.')[1]));
@@ -18,7 +18,7 @@ window.onSignIn = (resp) => {
 };
 
 window.enterAsGuest = () => {
-    enterApp("guest", "", "Guest");
+    enterApp("Misafir", "", "Guest");
 };
 
 function enterApp(name, photo, provider) {
@@ -31,20 +31,22 @@ function enterApp(name, photo, provider) {
     if (app) app.style.display = "flex";
 
     uTag.textContent = name;
+    
     if (provider === "Guest") {
         uTag.className = "guest-text";
-        pfpImg.classList.add("hidden");
+        if (pfpImg) pfpImg.style.display = "none"; // Misafirde fotoyu gizle
     } else {
         uTag.className = "";
-        if (photo) {
+        if (photo && pfpImg) {
             pfpImg.src = photo;
+            pfpImg.style.display = "block";
             pfpImg.classList.remove("hidden");
         }
     }
     addMsg("Neura'ya giriş yapıldı. Hoş geldin " + name + "!", "bot");
 }
 
-// 2. Araçlar ve Etiket Yönetimi (Aynı kaldı)
+// --- 2. ARAÇLAR VE ETİKET YÖNETİMİ ---
 function toggleTools() {
     document.getElementById("tools-menu").classList.toggle("hidden");
 }
@@ -91,7 +93,7 @@ function removeImageTag() {
     document.getElementById("q").placeholder = "Bir şeyler yazın...";
 }
 
-// 3. Ana Fonksiyon (Sohbet + Müzik + Görsel + NEURA MAX-1)
+// --- 3. ANA ZEKA FONKSİYONU (NEURA MAX-1 DESTEKLİ) ---
 async function talk() {
     if (isLoading) return;
     const qInput = document.getElementById("q");
@@ -105,8 +107,8 @@ async function talk() {
     addMsg(val, "user");
 
     let status = "Düşünüyor...";
-    if (isMusicMode) status = "🎵 Müzik besteleniyor (yaklaşık 30 sn)...";
-    if (isImageMode) status = "🖼️ Görsel çiziliyor (yaklaşık 15 sn)...";
+    if (isMusicMode) status = "🎵 Müzik besteleniyor...";
+    if (isImageMode) status = "🖼️ Görsel çiziliyor...";
     const loadDiv = addMsg(status, "bot");
 
     try {
@@ -119,7 +121,7 @@ async function talk() {
             if (!resp.ok) throw new Error();
             const blob = await resp.blob();
             loadDiv.remove();
-            const audioBox = addMsg("İşte müziğin  ", "bot");
+            const audioBox = addMsg("İşte müziğin: ", "bot");
             const audio = document.createElement("audio");
             audio.src = URL.createObjectURL(blob);
             audio.controls = true;
@@ -147,28 +149,35 @@ async function talk() {
             removeImageTag();
         } 
         else {
-            // --- BURASI NEURA MAX-1 ENTEGRASYONU ---
-            // Eğer seçilen model senin özel modelinse HF'ye, değilse Groq'a gider
             if (modelChoice === "neura-max-1") {
+                // KENDİ ÖZEL MODELİNE GİDER
                 const r = await fetch(`https://api-inference.huggingface.co/models/${MY_MODEL_ID}`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${HF_KEY}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ inputs: val, parameters: { max_new_tokens: 250, return_full_text: false } })
+                    body: JSON.stringify({ 
+                        inputs: val, 
+                        parameters: { max_new_tokens: 500, return_full_text: false } 
+                    })
                 });
                 const data = await r.json();
                 loadDiv.remove();
-                // HF Inference API bazen direkt array bazen obje döndürür
-                const reply = data[0]?.generated_text || data.generated_text || "Bir şeyler ters gitti.";
+                
+                // Hugging Face yanıt yapısını kontrol et
+                let reply = "Cevap üretilemedi.";
+                if (Array.isArray(data)) reply = data[0].generated_text;
+                else if (data.generated_text) reply = data.generated_text;
+                else if (data.error) reply = "Model uyanıyor, lütfen 10 saniye sonra tekrar dene.";
+
                 addMsg(reply, "bot");
             } else {
-                // Standart Groq Modelleri
+                // GROQ MODELLERİNE GİDER
                 const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GK}` },
                     body: JSON.stringify({
                         model: modelChoice,
                         messages: [
-                            { role: "system", content: "nazik ve zeki bir asistansın. Gerektiğinde duygusal ol." },
+                            { role: "system", content: "Nazik, zeki ve yardımcı bir asistansın." },
                             { role: "user", content: val }
                         ]
                     })
@@ -179,19 +188,21 @@ async function talk() {
             }
         }
     } catch (e) {
-        loadDiv.innerHTML = "❌ Bir hata oluştu (Model yükleniyor olabilir, lütfen tekrar dene)";
+        if (loadDiv) loadDiv.innerHTML = "❌ Bir bağlantı hatası oluştu.";
     }
     isLoading = false;
 }
 
-// 4. Yardımcılar (Aynı kaldı)
+// --- 4. YARDIMCI FONKSİYONLAR ---
 function addMsg(txt, cls) {
     const d = document.createElement("div");
     d.className = `msg ${cls}`;
     d.innerHTML = txt.replace(/\n/g, "<br>");
     const box = document.getElementById("chat");
-    box.appendChild(d);
-    box.scrollTop = box.scrollHeight;
+    if (box) {
+        box.appendChild(d);
+        box.scrollTop = box.scrollHeight;
+    }
     return d;
 }
 
