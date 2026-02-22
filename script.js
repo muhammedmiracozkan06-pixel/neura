@@ -7,7 +7,7 @@ let isLoading = false;
 let isMusicMode = false;
 let isImageMode = false;
 
-// --- 1. GİRİŞ VE KİMLİK DOĞRULAMA (TAMİR EDİLDİ) ---
+// --- 1. GİRİŞ VE KİMLİK DOĞRULAMA ---
 window.onSignIn = (resp) => {
     try {
         const payload = JSON.parse(atob(resp.credential.split('.')[1]));
@@ -34,7 +34,7 @@ function enterApp(name, photo, provider) {
     
     if (provider === "Guest") {
         uTag.className = "guest-text";
-        if (pfpImg) pfpImg.style.display = "none"; // Misafirde fotoyu gizle
+        if (pfpImg) pfpImg.style.display = "none";
     } else {
         uTag.className = "";
         if (photo && pfpImg) {
@@ -93,7 +93,7 @@ function removeImageTag() {
     document.getElementById("q").placeholder = "Bir şeyler yazın...";
 }
 
-// --- 3. ANA ZEKA FONKSİYONU (NEURA MAX-1 DESTEKLİ) ---
+// --- 3. ANA ZEKA FONKSİYONU ---
 async function talk() {
     if (isLoading) return;
     const qInput = document.getElementById("q");
@@ -150,34 +150,42 @@ async function talk() {
         } 
         else {
             if (modelChoice === "neura-max-1") {
-                // KENDİ ÖZEL MODELİNE GİDER
+                // --- BURASI MODELİ UYANDIRAN KRİTİK BÖLÜM ---
                 const r = await fetch(`https://api-inference.huggingface.co/models/${MY_MODEL_ID}`, {
                     method: "POST",
-                    headers: { "Authorization": `Bearer ${HF_KEY}`, "Content-Type": "application/json" },
+                    headers: { 
+                        "Authorization": `Bearer ${HF_KEY}`, 
+                        "Content-Type": "application/json" 
+                    },
                     body: JSON.stringify({ 
                         inputs: val, 
-                        parameters: { max_new_tokens: 500, return_full_text: false } 
+                        parameters: { 
+                            max_new_tokens: 500, 
+                            return_full_text: false 
+                        },
+                        options: {
+                            wait_for_model: true // MODELİ UYKUDAN ZORLA UYANDIRIR VE BEKLER
+                        }
                     })
                 });
                 const data = await r.json();
                 loadDiv.remove();
                 
-                // Hugging Face yanıt yapısını kontrol et
-                let reply = "Cevap üretilemedi.";
+                let reply = "";
                 if (Array.isArray(data)) reply = data[0].generated_text;
                 else if (data.generated_text) reply = data.generated_text;
-                else if (data.error) reply = "Model uyanıyor, lütfen 10 saniye sonra tekrar dene.";
+                else if (data.error) reply = "Model şu an yükleniyor (3GB), lütfen 30 saniye sonra tekrar deneyin.";
+                else reply = "Beklenmedik bir yanıt alındı.";
 
                 addMsg(reply, "bot");
             } else {
-                // GROQ MODELLERİNE GİDER
                 const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GK}` },
                     body: JSON.stringify({
                         model: modelChoice,
                         messages: [
-                            { role: "system", content: "Nazik, zeki ve yardımcı bir asistansın." },
+                            { role: "system", content: "Sen Neura MAX'sın. Nazik, zeki ve yardımcı bir asistansın." },
                             { role: "user", content: val }
                         ]
                     })
@@ -188,7 +196,7 @@ async function talk() {
             }
         }
     } catch (e) {
-        if (loadDiv) loadDiv.innerHTML = "❌ Bir bağlantı hatası oluştu.";
+        if (loadDiv) loadDiv.innerHTML = "❌ Model uyanırken bir hata oluştu. Tekrar deneyin.";
     }
     isLoading = false;
 }
