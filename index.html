@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -12,18 +12,23 @@
     <div id="auth-overlay" class="overlay">
         <div class="auth-card">
             <h1>NEURA<span>MAX</span></h1>
-            <p>winddeveloper altyapısıyla.</p>
-            <div id="g_id_onload" data-client_id="814782030062-8v259id86f9f0j26f8d035idvms.apps.googleusercontent.com" data-callback="onSignIn"></div>
-            <div class="g_id_signin" data-type="standard"></div>
-            <div class="divider">veya</div>
-            <button onclick="enterAsGuest()" class="guest-btn">Misafir Girişi</button>
+            <p>winddeveloper</p>
+            
+            <div class="auth-buttons">
+                <div id="g_id_onload" data-client_id="814782030062-8v259id86f9f0j26f8d035idvms.apps.googleusercontent.com" data-callback="onSignIn"></div>
+                <div class="g_id_signin" data-type="standard"></div>
+                
+                <div class="divider">veya</div>
+                
+                <button onclick="enterAsGuest()" class="guest-btn">Misafir Olarak Devam Et</button>
+            </div>
         </div>
     </div>
 
     <div id="main-app" class="app-container" style="display: none;">
         <header>
             <div class="logo">NEURAMAX<span>|winddeveloper</span></div>
-            <div id="user-header-info" class="user-header" style="display: none;">
+            <div id="user-header-info" class="user-header">
                 <span id="u-tag"></span>
                 <img id="user-pfp" src="" alt="">
             </div>
@@ -32,19 +37,17 @@
         <main id="chat" class="chat-box"></main>
 
         <footer>
-            <div class="input-wrapper">
-                <div class="input-group">
-                    <textarea id="q" placeholder="Mesajınızı yazın..." oninput="autoGrow(this)" rows="1"></textarea>
-                    
-                    <div class="control-area">
-                        <div class="model-buttons">
-                            <button onclick="setModel('hizli')" id="btn-hizli">Hızlı</button>
-                            <button onclick="setModel('dusunen')" id="btn-dusunen">Düşünen</button>
-                            <button onclick="setModel('pro')" id="btn-pro">Pro</button>
-                            <button onclick="setModel('oto')" id="btn-oto" class="active">Oto</button>
-                        </div>
-                        <button id="send-btn" onclick="talk()">✈</button>
+            <div class="input-container">
+                <textarea id="q" placeholder="Mesajınızı yazın..." oninput="autoGrow(this)" rows="1"></textarea>
+                
+                <div class="bottom-bar">
+                    <div class="model-buttons">
+                        <button onclick="setModel('hizli')" id="btn-hizli">Hızlı</button>
+                        <button onclick="setModel('dusunen')" id="btn-dusunen">Düşünen</button>
+                        <button onclick="setModel('pro')" id="btn-pro">Pro</button>
+                        <button onclick="setModel('oto')" id="btn-oto" class="active">Oto</button>
                     </div>
+                    <button id="send-btn" onclick="talk()">✈</button>
                 </div>
             </div>
         </footer>
