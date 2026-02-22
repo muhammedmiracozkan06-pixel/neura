@@ -1,165 +1,111 @@
-// --- ANAHTARLAR ---
 const GK = "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";
-const HF_KEY = "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"; 
+let currentModel = "oto";
+let selectedFiles = [];
 
-let isLoading = false;
-let isMusicMode = false;
-let isImageMode = false;
+// Model Seçimi
+function setModel(m) {
+    currentModel = m;
+    document.querySelectorAll('.model-selectors button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + m).classList.add('active');
+}
 
-// --- 1. GİRİŞ SİSTEMİ ---
-window.onSignIn = (resp) => {
-    try {
-        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
-        enterApp(payload.name, payload.picture, "Google");
-    } catch (e) {
-        enterApp("Kullanıcı", "", "Google");
-    }
-};
+// Otomatik Büyüyen Textarea
+function autoGrow(el) {
+    el.style.height = "auto";
+    el.style.height = (el.scrollHeight) + "px";
+}
 
-window.enterAsGuest = () => {
-    enterApp("Misafir", "", "Guest");
-};
+// Yan Panel Aç/Kapat
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+}
 
-function enterApp(name, photo, provider) {
-    const overlay = document.getElementById("auth-overlay");
-    const app = document.getElementById("main-app");
-    const uTag = document.getElementById("u-tag");
-    const pfpImg = document.getElementById("user-pfp");
-
-    if (overlay) overlay.style.display = "none";
-    if (app) app.style.display = "flex";
-
-    uTag.textContent = name;
+// Görsel Seçimi (Maks 2 tane)
+function handleFiles(input) {
+    const files = Array.from(input.files).slice(0, 2);
+    selectedFiles = [];
+    document.getElementById('preview-area').innerHTML = "";
     
-    if (provider === "Guest") {
-        if (pfpImg) pfpImg.style.display = "none";
-    } else if (photo && pfpImg) {
-        pfpImg.src = photo;
-        pfpImg.style.display = "block";
-    }
-    addMsg("Neura'ya hoş geldin " + name + "!", "bot");
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            selectedFiles.push(e.target.result); // Base64
+            const img = document.createElement('img');
+            img.className = 'preview-img';
+            img.src = e.target.result;
+            document.getElementById('preview-area').appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
 }
 
-// --- 2. MODLAR VE ARAÇLAR ---
-function toggleTools() {
-    document.getElementById("tools-menu").classList.toggle("hidden");
-}
-
-function addMusicTag() {
-    if (isMusicMode) return;
-    if (isImageMode) removeImageTag();
-    const tag = document.createElement("div");
-    tag.className = "tag";
-    tag.id = "music-tag";
-    tag.innerHTML = `🎵 Müzik <span onclick="removeMusicTag()">×</span>`;
-    document.getElementById("active-tags").appendChild(tag);
-    isMusicMode = true;
-    document.getElementById("q").placeholder = "Nasıl bir müzik?";
-    toggleTools();
-}
-
-function removeMusicTag() {
-    document.getElementById("music-tag")?.remove();
-    isMusicMode = false;
-    document.getElementById("q").placeholder = "Bir şeyler yazın...";
-}
-
-function addImageTag() {
-    if (isImageMode) return;
-    if (isMusicMode) removeMusicTag();
-    const tag = document.createElement("div");
-    tag.className = "tag";
-    tag.id = "image-tag";
-    tag.innerHTML = `🖼️ Görsel <span onclick="removeImageTag()">×</span>`;
-    document.getElementById("active-tags").appendChild(tag);
-    isImageMode = true;
-    document.getElementById("q").placeholder = "Görseli tarif et...";
-    toggleTools();
-}
-
-function removeImageTag() {
-    document.getElementById("image-tag")?.remove();
-    isImageMode = false;
-    document.getElementById("q").placeholder = "Bir şeyler yazın...";
-}
-
-// --- 3. ANA KONUŞMA (SAĞLAM SÜRÜM) ---
 async function talk() {
-    if (isLoading) return;
     const qInput = document.getElementById("q");
     const val = qInput.value.trim();
-    const modelChoice = document.getElementById("model-select").value;
+    if (!val && selectedFiles.length === 0) return;
 
-    if (!val) return;
-    isLoading = true;
-    qInput.value = "";
     addMsg(val, "user");
+    qInput.value = "";
+    qInput.style.height = "auto";
+    document.getElementById('preview-area').innerHTML = "";
 
-    let status = isMusicMode ? "🎵 Besteleniyor..." : isImageMode ? "🖼️ Çiziliyor..." : "Düşünüyor...";
-    const loadDiv = addMsg(status, "bot");
+    // Model Kararı
+    let modelId = "llama-3.3-70b-versatile"; // Pro (Varsayılan)
+    if (currentModel === "hizli") modelId = "llama3-8b-8192";
+    if (currentModel === "dusunen") modelId = "llama-3.2-11b-vision-preview";
+    if (selectedFiles.length > 0) modelId = "llama-3.2-11b-vision-preview"; // Görsel varsa Vision modeline geç
+    if (currentModel === "oto") {
+        const models = ["llama3-8b-8192", "llama-3.3-70b-versatile"];
+        modelId = models[Math.floor(Math.random() * models.length)];
+    }
+
+    const loadDiv = addMsg(currentModel === "dusunen" ? "Derinlemesine düşünülüyor..." : "Düşünüyor...", "bot");
 
     try {
-        if (isMusicMode) {
-            const r = await fetch("https://api-inference.huggingface.co/models/facebook/musicgen-small", {
-                headers: { Authorization: `Bearer ${HF_KEY}` },
-                method: "POST",
-                body: JSON.stringify({ inputs: val })
-            });
-            const blob = await r.blob();
-            loadDiv.remove();
-            const audio = document.createElement("audio");
-            audio.src = URL.createObjectURL(blob);
-            audio.controls = true;
-            addMsg("İşte müziğin:", "bot").appendChild(audio);
-            removeMusicTag();
-        } 
-        else if (isImageMode) {
-            const r = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
-                headers: { Authorization: `Bearer ${HF_KEY}` },
-                method: "POST",
-                body: JSON.stringify({ inputs: val })
-            });
-            const blob = await r.blob();
-            loadDiv.remove();
-            const img = document.createElement("img");
-            img.src = URL.createObjectURL(blob);
-            img.style.width = "100%";
-            img.style.borderRadius = "10px";
-            addMsg("İşte görselin:", "bot").appendChild(img);
-            removeImageTag();
-        } 
-        else {
-            // GROQ MODELLERİ (Llama, Gemma vb.)
-            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GK}` },
-                body: JSON.stringify({
-                    model: modelChoice,
-                    messages: [
-                        { role: "system", content: "Sen Neura'sın. Mirac tarafından geliştirildin. Zeki ve nazik bir asistansın." },
-                        { role: "user", content: val }
-                    ]
-                })
-            });
-            const data = await r.json();
-            loadDiv.remove();
-            addMsg(data.choices[0].message.content, "bot");
-        }
+        const content = [{ type: "text", text: val }];
+        selectedFiles.forEach(base64 => {
+            content.push({ type: "image_url", image_url: { url: base64 } });
+        });
+
+        const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GK}` },
+            body: JSON.stringify({
+                model: modelId,
+                messages: [{ role: "user", content: content }]
+            })
+        });
+
+        const data = await r.json();
+        loadDiv.remove();
+        addMsg(data.choices[0].message.content, "bot");
     } catch (e) {
-        loadDiv.innerHTML = "❌ Bir sorun oluştu. Lütfen tekrar deneyin.";
+        loadDiv.innerHTML = "Bir hata oluştu.";
     }
-    isLoading = false;
+    selectedFiles = [];
 }
 
-// --- 4. YARDIMCI ---
-function addMsg(txt, cls) {
+function addMsg(t, c) {
     const d = document.createElement("div");
-    d.className = `msg ${cls}`;
-    d.innerHTML = txt.replace(/\n/g, "<br>");
+    d.className = `msg ${c}`;
+    d.innerHTML = t.replace(/\n/g, "<br>");
     const box = document.getElementById("chat");
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
     return d;
 }
 
-document.getElementById("q").addEventListener("keypress", (e) => { if (e.key === "Enter") talk(); });
+// Misafir Girişi Fix
+window.enterAsGuest = () => {
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('u-tag').textContent = "Misafir Kullanıcı";
+    document.getElementById('u-mail').textContent = "misafir@neura.ai";
+};
+
+window.onSignIn = (resp) => {
+    const payload = JSON.parse(atob(resp.credential.split('.')[1]));
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('u-tag').textContent = payload.name;
+    document.getElementById('u-mail').textContent = payload.email;
+    document.getElementById('user-pfp').src = payload.picture;
+};
