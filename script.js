@@ -2,25 +2,21 @@ const GK = "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";
 let currentModel = "oto";
 let selectedFiles = [];
 
-// Model Seçimi
 function setModel(m) {
     currentModel = m;
     document.querySelectorAll('.model-selectors button').forEach(b => b.classList.remove('active'));
     document.getElementById('btn-' + m).classList.add('active');
 }
 
-// Otomatik Büyüyen Textarea
 function autoGrow(el) {
     el.style.height = "auto";
     el.style.height = (el.scrollHeight) + "px";
 }
 
-// Yan Panel Aç/Kapat
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('open');
 }
 
-// Görsel Seçimi (Maks 2 tane)
 function handleFiles(input) {
     const files = Array.from(input.files).slice(0, 2);
     selectedFiles = [];
@@ -29,7 +25,7 @@ function handleFiles(input) {
     files.forEach(file => {
         const reader = new FileReader();
         reader.onload = (e) => {
-            selectedFiles.push(e.target.result); // Base64
+            selectedFiles.push(e.target.result);
             const img = document.createElement('img');
             img.className = 'preview-img';
             img.src = e.target.result;
@@ -44,27 +40,27 @@ async function talk() {
     const val = qInput.value.trim();
     if (!val && selectedFiles.length === 0) return;
 
-    addMsg(val, "user");
+    addMsg(val || "Görsel gönderildi.", "user");
     qInput.value = "";
     qInput.style.height = "auto";
     document.getElementById('preview-area').innerHTML = "";
 
-    // Model Kararı
-    let modelId = "llama-3.3-70b-versatile"; // Pro (Varsayılan)
+    let modelId = "llama-3.3-70b-versatile"; // PRO
     if (currentModel === "hizli") modelId = "llama3-8b-8192";
     if (currentModel === "dusunen") modelId = "llama-3.2-11b-vision-preview";
-    if (selectedFiles.length > 0) modelId = "llama-3.2-11b-vision-preview"; // Görsel varsa Vision modeline geç
+    if (selectedFiles.length > 0) modelId = "llama-3.2-11b-vision-preview";
     if (currentModel === "oto") {
-        const models = ["llama3-8b-8192", "llama-3.3-70b-versatile"];
-        modelId = models[Math.floor(Math.random() * models.length)];
+        const mods = ["llama3-8b-8192", "llama-3.3-70b-versatile"];
+        modelId = mods[Math.floor(Math.random() * mods.length)];
     }
 
-    const loadDiv = addMsg(currentModel === "dusunen" ? "Derinlemesine düşünülüyor..." : "Düşünüyor...", "bot");
+    const loadDiv = addMsg(currentModel === "dusunen" ? "Neura derinlemesine düşünüyor..." : "Düşünüyor...", "bot");
 
     try {
-        const content = [{ type: "text", text: val }];
-        selectedFiles.forEach(base64 => {
-            content.push({ type: "image_url", image_url: { url: base64 } });
+        const content = [];
+        if (val) content.push({ type: "text", text: val });
+        selectedFiles.forEach(b64 => {
+            content.push({ type: "image_url", image_url: { url: b64 } });
         });
 
         const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -80,7 +76,7 @@ async function talk() {
         loadDiv.remove();
         addMsg(data.choices[0].message.content, "bot");
     } catch (e) {
-        loadDiv.innerHTML = "Bir hata oluştu.";
+        loadDiv.innerHTML = "Bir hata oluştu patron.";
     }
     selectedFiles = [];
 }
@@ -95,16 +91,20 @@ function addMsg(t, c) {
     return d;
 }
 
-// Misafir Girişi Fix
 window.enterAsGuest = () => {
     document.getElementById('auth-overlay').style.display = 'none';
-    document.getElementById('u-tag').textContent = "Misafir Kullanıcı";
-    document.getElementById('u-mail').textContent = "misafir@neura.ai";
+    document.getElementById('main-app').style.display = 'flex';
+    document.getElementById('sidebar-user-info').style.display = 'none'; // Misafirde gizle
+    addMsg("Neura MAX-1'e misafir olarak hoş geldin!", "bot");
 };
 
 window.onSignIn = (resp) => {
     const payload = JSON.parse(atob(resp.credential.split('.')[1]));
     document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('main-app').style.display = 'flex';
+    
+    const info = document.getElementById('sidebar-user-info');
+    info.style.display = 'flex'; // Google ile girince göster
     document.getElementById('u-tag').textContent = payload.name;
     document.getElementById('u-mail').textContent = payload.email;
     document.getElementById('user-pfp').src = payload.picture;
