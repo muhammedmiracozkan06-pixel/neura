@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neura</title>
+    <title>Neuramax | winddeveloper</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -11,51 +11,38 @@
 
     <div id="auth-overlay" class="overlay">
         <div class="auth-card">
-            <h1>NEURA<span>giriş yap.</span></h1>
-            <p>Yapay zekanın yeni boyutu.</p>
+            <h1>NEURA<span>MAX</span></h1>
+            <p>winddeveloper altyapısıyla.</p>
             <div id="g_id_onload" data-client_id="814782030062-8v259id86f9f0j26f8d035idvms.apps.googleusercontent.com" data-callback="onSignIn"></div>
             <div class="g_id_signin" data-type="standard"></div>
             <div class="divider">veya</div>
-            <button onclick="enterAsGuest()" class="guest-btn">Misafir Olarak Giriş Yap</button>
-        </div>
-    </div>
-
-    <div id="sidebar" class="sidebar">
-        <div id="sidebar-user-info" class="sidebar-header" style="display: none;">
-            <img id="user-pfp" src="" alt="P">
-            <div class="user-details">
-                <span id="u-tag"></span>
-                <small id="u-mail"></small>
-            </div>
-        </div>
-        <div class="sidebar-content">
-            <p class="empty-msg">Burada görüntülenecek bir şey yok.</p>
+            <button onclick="enterAsGuest()" class="guest-btn">Misafir Girişi</button>
         </div>
     </div>
 
     <div id="main-app" class="app-container" style="display: none;">
         <header>
-            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <div class="logo">NEURA</div>
+            <div class="logo">NEURAMAX<span>|winddeveloper</span></div>
+            <div id="user-header-info" class="user-header" style="display: none;">
+                <span id="u-tag"></span>
+                <img id="user-pfp" src="" alt="">
+            </div>
         </header>
 
         <main id="chat" class="chat-box"></main>
 
         <footer>
-            <div class="model-selectors">
-                <button onclick="setModel('hizli')" id="btn-hizli">Hızlı</button>
-                <button onclick="setModel('dusunen')" id="btn-dusunen">Düşünen</button>
-                <button onclick="setModel('pro')" id="btn-pro">Pro</button>
-                <button onclick="setModel('oto')" id="btn-oto" class="active">Otomatik</button>
-            </div>
-            
             <div class="input-wrapper">
-                <div id="preview-area"></div>
                 <div class="input-group">
                     <textarea id="q" placeholder="Mesajınızı yazın..." oninput="autoGrow(this)" rows="1"></textarea>
-                    <div class="input-actions">
-                        <label for="img-upload" class="plus-btn">+</label>
-                        <input type="file" id="img-upload" multiple accept="image/*" style="display:none" onchange="handleFiles(this)">
+                    
+                    <div class="control-area">
+                        <div class="model-buttons">
+                            <button onclick="setModel('hizli')" id="btn-hizli">Hızlı</button>
+                            <button onclick="setModel('dusunen')" id="btn-dusunen">Düşünen</button>
+                            <button onclick="setModel('pro')" id="btn-pro">Pro</button>
+                            <button onclick="setModel('oto')" id="btn-oto" class="active">Oto</button>
+                        </div>
                         <button id="send-btn" onclick="talk()">✈</button>
                     </div>
                 </div>
