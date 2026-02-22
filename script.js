@@ -1,47 +1,165 @@
-// --- ANAHTARLAR VE AYARLAR ---
+// --- ANAHTARLAR ---
 const GK = "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";
 const HF_KEY = "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"; 
-const MY_MODEL_ID = "muhamsdadefwf/Neura_MAX_1_Final";
 
-// CLOUDFLARE AYARLARIN
-const CF_ACCOUNT_ID = "922158fb1068d0a8d0e20a93c3bb4492";
-const CF_API_TOKEN = "ga9hqQPaU9uo-Xf-rHZc5VVggsY_mqynoyCWtdyI"; // Senin aldığın token
+let isLoading = false;
+let isMusicMode = false;
+let isImageMode = false;
 
-// --- talk() FONKSİYONU İÇİNDEKİ NEURA KISMI ---
-// talk fonksiyonu içindeki 'else' bloğunun içindeki 'if (modelChoice === "neura-max-1")' bölümünü bununla değiştir:
-
-if (modelChoice === "neura-max-1") {
+// --- 1. GİRİŞ SİSTEMİ ---
+window.onSignIn = (resp) => {
     try {
-        const r = await fetch(
-            `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@hf/muhamsdadefwf/Neura_MAX_1_Final`,
-            {
+        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
+        enterApp(payload.name, payload.picture, "Google");
+    } catch (e) {
+        enterApp("Kullanıcı", "", "Google");
+    }
+};
+
+window.enterAsGuest = () => {
+    enterApp("Misafir", "", "Guest");
+};
+
+function enterApp(name, photo, provider) {
+    const overlay = document.getElementById("auth-overlay");
+    const app = document.getElementById("main-app");
+    const uTag = document.getElementById("u-tag");
+    const pfpImg = document.getElementById("user-pfp");
+
+    if (overlay) overlay.style.display = "none";
+    if (app) app.style.display = "flex";
+
+    uTag.textContent = name;
+    
+    if (provider === "Guest") {
+        if (pfpImg) pfpImg.style.display = "none";
+    } else if (photo && pfpImg) {
+        pfpImg.src = photo;
+        pfpImg.style.display = "block";
+    }
+    addMsg("Neura'ya hoş geldin " + name + "!", "bot");
+}
+
+// --- 2. MODLAR VE ARAÇLAR ---
+function toggleTools() {
+    document.getElementById("tools-menu").classList.toggle("hidden");
+}
+
+function addMusicTag() {
+    if (isMusicMode) return;
+    if (isImageMode) removeImageTag();
+    const tag = document.createElement("div");
+    tag.className = "tag";
+    tag.id = "music-tag";
+    tag.innerHTML = `🎵 Müzik <span onclick="removeMusicTag()">×</span>`;
+    document.getElementById("active-tags").appendChild(tag);
+    isMusicMode = true;
+    document.getElementById("q").placeholder = "Nasıl bir müzik?";
+    toggleTools();
+}
+
+function removeMusicTag() {
+    document.getElementById("music-tag")?.remove();
+    isMusicMode = false;
+    document.getElementById("q").placeholder = "Bir şeyler yazın...";
+}
+
+function addImageTag() {
+    if (isImageMode) return;
+    if (isMusicMode) removeMusicTag();
+    const tag = document.createElement("div");
+    tag.className = "tag";
+    tag.id = "image-tag";
+    tag.innerHTML = `🖼️ Görsel <span onclick="removeImageTag()">×</span>`;
+    document.getElementById("active-tags").appendChild(tag);
+    isImageMode = true;
+    document.getElementById("q").placeholder = "Görseli tarif et...";
+    toggleTools();
+}
+
+function removeImageTag() {
+    document.getElementById("image-tag")?.remove();
+    isImageMode = false;
+    document.getElementById("q").placeholder = "Bir şeyler yazın...";
+}
+
+// --- 3. ANA KONUŞMA (SAĞLAM SÜRÜM) ---
+async function talk() {
+    if (isLoading) return;
+    const qInput = document.getElementById("q");
+    const val = qInput.value.trim();
+    const modelChoice = document.getElementById("model-select").value;
+
+    if (!val) return;
+    isLoading = true;
+    qInput.value = "";
+    addMsg(val, "user");
+
+    let status = isMusicMode ? "🎵 Besteleniyor..." : isImageMode ? "🖼️ Çiziliyor..." : "Düşünüyor...";
+    const loadDiv = addMsg(status, "bot");
+
+    try {
+        if (isMusicMode) {
+            const r = await fetch("https://api-inference.huggingface.co/models/facebook/musicgen-small", {
+                headers: { Authorization: `Bearer ${HF_KEY}` },
                 method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${CF_API_TOKEN}`,
-                    "Content-Type": "application/json"
-                },
+                body: JSON.stringify({ inputs: val })
+            });
+            const blob = await r.blob();
+            loadDiv.remove();
+            const audio = document.createElement("audio");
+            audio.src = URL.createObjectURL(blob);
+            audio.controls = true;
+            addMsg("İşte müziğin:", "bot").appendChild(audio);
+            removeMusicTag();
+        } 
+        else if (isImageMode) {
+            const r = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
+                headers: { Authorization: `Bearer ${HF_KEY}` },
+                method: "POST",
+                body: JSON.stringify({ inputs: val })
+            });
+            const blob = await r.blob();
+            loadDiv.remove();
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(blob);
+            img.style.width = "100%";
+            img.style.borderRadius = "10px";
+            addMsg("İşte görselin:", "bot").appendChild(img);
+            removeImageTag();
+        } 
+        else {
+            // GROQ MODELLERİ (Llama, Gemma vb.)
+            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GK}` },
                 body: JSON.stringify({
+                    model: modelChoice,
                     messages: [
-                        { role: "system", content: "Sen  (Wind Developer) tarafından eğitilen Neura MAX-1'sin. Zeki ve nazik bir asistansın." },
+                        { role: "system", content: "Sen Neura'sın. Mirac tarafından geliştirildin. Zeki ve nazik bir asistansın." },
                         { role: "user", content: val }
                     ]
                 })
-            }
-        );
-
-        const data = await r.json();
-        loadDiv.remove();
-
-        if (data.success) {
-            // Cloudflare yanıtı 'result.response' içinde verir
-            addMsg(data.result.response, "bot");
-        } else {
-            console.error("Cloudflare Hatası:", data);
-            addMsg("Cloudflare: Model bulunamadı veya erişim reddedildi. Lütfen Hugging Face modelinin 'Public' olduğundan emin ol.", "bot");
+            });
+            const data = await r.json();
+            loadDiv.remove();
+            addMsg(data.choices[0].message.content, "bot");
         }
     } catch (e) {
-        console.error("Bağlantı Hatası:", e);
-        if (loadDiv) loadDiv.remove();
-        addMsg("❌ Cloudflare sunucusuna bağlanılamadı.", "bot");
+        loadDiv.innerHTML = "❌ Bir sorun oluştu. Lütfen tekrar deneyin.";
     }
+    isLoading = false;
 }
+
+// --- 4. YARDIMCI ---
+function addMsg(txt, cls) {
+    const d = document.createElement("div");
+    d.className = `msg ${cls}`;
+    d.innerHTML = txt.replace(/\n/g, "<br>");
+    const box = document.getElementById("chat");
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+    return d;
+}
+
+document.getElementById("q").addEventListener("keypress", (e) => { if (e.key === "Enter") talk(); });
