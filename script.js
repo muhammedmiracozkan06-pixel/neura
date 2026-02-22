@@ -1,11 +1,13 @@
-const GK = "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";
-const HF_KEY = "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";
+cconst GK = "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";
+// Kendi oluşturduğun yeni anahtarı buraya ekledim patron!
+const HF_KEY = "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"; 
+const MY_MODEL_ID = "muhamsdadefwf/Neura_MAX_1_Final";
 
 let isLoading = false;
 let isMusicMode = false;
 let isImageMode = false;
 
-// 1. Giriş Yanıtları
+// 1. Giriş Yanıtları (Aynı kaldı)
 window.onSignIn = (resp) => {
     try {
         const payload = JSON.parse(atob(resp.credential.split('.')[1]));
@@ -39,10 +41,10 @@ function enterApp(name, photo, provider) {
             pfpImg.classList.remove("hidden");
         }
     }
-    addMsg("Neura a giriş yapıldı. Hoş geldin " + name + "!", "bot");
+    addMsg("Neura'ya giriş yapıldı. Hoş geldin " + name + "!", "bot");
 }
 
-// 2. Araçlar ve Etiket Yönetimi
+// 2. Araçlar ve Etiket Yönetimi (Aynı kaldı)
 function toggleTools() {
     document.getElementById("tools-menu").classList.toggle("hidden");
 }
@@ -89,12 +91,12 @@ function removeImageTag() {
     document.getElementById("q").placeholder = "Bir şeyler yazın...";
 }
 
-// 3. Ana Fonksiyon (Sohbet + Müzik + Görsel)
+// 3. Ana Fonksiyon (Sohbet + Müzik + Görsel + NEURA MAX-1)
 async function talk() {
     if (isLoading) return;
     const qInput = document.getElementById("q");
     const val = qInput.value.trim();
-    const model = document.getElementById("model-select").value;
+    const modelChoice = document.getElementById("model-select").value;
 
     if (!val) return;
 
@@ -145,28 +147,44 @@ async function talk() {
             removeImageTag();
         } 
         else {
-            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GK}` },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        { role: "system", content: "nazik ve zeki bir asistansın.gerektiğinde duygusal ol." },
-                        { role: "user", content: val }
-                    ]
-                })
-            });
-            const data = await r.json();
-            loadDiv.remove();
-            addMsg(data.choices[0].message.content, "bot");
+            // --- BURASI NEURA MAX-1 ENTEGRASYONU ---
+            // Eğer seçilen model senin özel modelinse HF'ye, değilse Groq'a gider
+            if (modelChoice === "neura-max-1") {
+                const r = await fetch(`https://api-inference.huggingface.co/models/${MY_MODEL_ID}`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${HF_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ inputs: val, parameters: { max_new_tokens: 250, return_full_text: false } })
+                });
+                const data = await r.json();
+                loadDiv.remove();
+                // HF Inference API bazen direkt array bazen obje döndürür
+                const reply = data[0]?.generated_text || data.generated_text || "Bir şeyler ters gitti.";
+                addMsg(reply, "bot");
+            } else {
+                // Standart Groq Modelleri
+                const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GK}` },
+                    body: JSON.stringify({
+                        model: modelChoice,
+                        messages: [
+                            { role: "system", content: "nazik ve zeki bir asistansın. Gerektiğinde duygusal ol." },
+                            { role: "user", content: val }
+                        ]
+                    })
+                });
+                const data = await r.json();
+                loadDiv.remove();
+                addMsg(data.choices[0].message.content, "bot");
+            }
         }
     } catch (e) {
-        loadDiv.innerHTML = "❌ Bir hata oluştu";
+        loadDiv.innerHTML = "❌ Bir hata oluştu (Model yükleniyor olabilir, lütfen tekrar dene)";
     }
     isLoading = false;
 }
 
-// 4. Yardımcılar
+// 4. Yardımcılar (Aynı kaldı)
 function addMsg(txt, cls) {
     const d = document.createElement("div");
     d.className = `msg ${cls}`;
